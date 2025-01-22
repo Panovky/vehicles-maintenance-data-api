@@ -14,17 +14,20 @@ router = APIRouter(
 
 
 def check_user_data_uniqueness(user_data: UserCreate | UserUpdate, session: SessionDep) -> None:
-    if user_data.phone and user_data.phone in session.execute(select(User.phone)).scalars().all():
+    if user_data.phone and \
+            user_data.phone in session.execute(select(User.phone).where(User.role == user_data.role)).scalars().all():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail='User with the same phone number already exists.'
+            detail=f'User with the same phone number already exists among users with role «{user_data.role.name}».'
         )
-    if user_data.email and user_data.email in session.execute(select(User.email)).scalars().all():
+    if user_data.email and \
+            user_data.email in session.execute(select(User.email).where(User.role == user_data.role)).scalars().all():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail='User with the same email address already exists.'
+            detail=f'User with the same email address already exists among users with role «{user_data.role.name}».'
         )
-    if user_data.login and user_data.login in session.execute(select(User.login)).scalars().all():
+    if user_data.login and \
+            user_data.login in session.execute(select(User.login)).scalars().all():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail='User with the same login already exists.'
