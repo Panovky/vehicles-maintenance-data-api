@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Path
+from fastapi import APIRouter, HTTPException, status, Path, Query
 from fastapi.responses import Response
 from sqlalchemy import select
 from typing import Any, Annotated
 from src.dependencies import SessionDep
-from src.models.user import User
+from src.models.user import User, UserRoleEnum
 from src.schemas.users import UserRead, UserCreate, UserUpdate
 from src.services.users import hash_password
 
@@ -66,9 +66,18 @@ def delete_user(user_id: Annotated[int, Path(gt=0)], session: SessionDep) -> Res
 
 
 @router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of users')
-def get_users(session: SessionDep, limit: int = 10, offset: int = 0) -> list[UserRead]:
-    """Return a list of users of a given length (limit), starting from a given table entry (offset)."""
+def get_users(
+        session: SessionDep,
+        user_role: Annotated[UserRoleEnum | None, Query(alias='user-role')] = None,
+        limit: int = 10, offset: int = 0
+) -> list[UserRead]:
+    """
+    Return a list of users with the given role of a given length (limit), starting from a given table entry (offset).
+    If no role is specified, a list of users with both roles will be returned.
+    """
     users = session.execute(select(User).offset(offset).limit(limit)).scalars().all()
+    if user_role:
+        users = [user for user in users if user.role == user_role]
     return users
 
 
