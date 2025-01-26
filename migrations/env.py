@@ -6,6 +6,7 @@ from sqlalchemy import pool
 
 import src.models.service
 import src.models.user
+import src.models.vehicles
 from src.database import Base
 
 # this is the Alembic Config object, which provides
