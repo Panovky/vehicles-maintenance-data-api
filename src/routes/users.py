@@ -3,8 +3,8 @@ from fastapi.responses import Response
 from sqlalchemy import select
 from typing import Any, Annotated
 from src.dependencies import SessionDep
-from src.models.user import User, UserRoleEnum
-from src.schemas.users import UserRead, UserCreate, UserUpdate
+from src.models import User, UserRoleEnum
+from src.schemas import UserRead, UserCreate, UserUpdate
 from src.services.users import hash_password
 
 router = APIRouter(
