@@ -4,7 +4,7 @@ from sqlalchemy import select
 from typing import Annotated, Any
 from src.dependencies import SessionDep
 from src.models import Service
-from src.schemas.services import ServiceRead, ServiceCreate, ServiceUpdate
+from src.schemas import ServiceRead, ServiceCreate, ServiceUpdate
 
 router = APIRouter(
     prefix='/services',

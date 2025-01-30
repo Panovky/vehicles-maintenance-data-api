@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import Annotated
 from src.dependencies import SessionDep
 from src.models import Range, Generation
-from src.schemas.vehicles import GenerationRead
+from src.schemas import GenerationRead
 
 router = APIRouter(
     prefix='/generations',

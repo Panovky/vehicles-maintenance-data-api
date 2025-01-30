@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import Annotated
 from src.dependencies import SessionDep
 from src.models import Generation, Configuration
-from src.schemas.vehicles import ConfigurationRead
+from src.schemas import ConfigurationRead
 
 router = APIRouter(
     prefix='/configurations',

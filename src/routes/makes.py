@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 from sqlalchemy import select
 from src.dependencies import SessionDep
 from src.models import Make
-from src.schemas.vehicles import MakeRead
+from src.schemas import MakeRead
 
 router = APIRouter(
     prefix='/makes',

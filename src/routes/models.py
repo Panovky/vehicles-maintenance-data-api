@@ -3,7 +3,7 @@ from sqlalchemy import select, and_
 from typing import Annotated
 from src.dependencies import SessionDep
 from src.models import Make, Model
-from src.schemas.vehicles import ModelRead
+from src.schemas import ModelRead
 
 router = APIRouter(
     prefix='/models',

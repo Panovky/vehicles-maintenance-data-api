@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import Annotated
 from src.dependencies import SessionDep
 from src.models import Model, Range
-from src.schemas.vehicles import RangeRead
+from src.schemas import RangeRead
 
 router = APIRouter(
     prefix='/ranges',
