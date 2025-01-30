@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select, and_
 from typing import Annotated
 from src.dependencies import SessionDep
-from src.models.vehicles import Make, Model, Range, Generation, Configuration
+from src.models import Make, Model, Range, Generation, Configuration
 from src.schemas.vehicles import MakeRead, ModelRead, RangeRead, GenerationRead, ConfigurationRead
 
 router = APIRouter(
