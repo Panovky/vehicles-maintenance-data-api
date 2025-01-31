@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from src.models import ModelTypeEnum
 
 
 class MakeScrape(BaseModel):
@@ -18,4 +19,5 @@ class ModelScrape(BaseModel):
     The model used for further data scrapping.
     """
     name: str
+    type: ModelTypeEnum
     ranges_drom_url: str

@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from src.models import ModelTypeEnum
 from src.schemas import MakeScrape, ModelScrape
 
 
@@ -26,6 +27,11 @@ def scrape_makes(makes_drom_url) -> list[MakeScrape]:
 def scrape_models(models_drom_url) -> list[ModelScrape]:
     """Return a list of all vehicle models scrapped from specified url in drom.ru."""
 
+    if models_drom_url.startswith('https://www.drom.ru/catalog/lcv/'):
+        _type = ModelTypeEnum.truck
+    else:
+        _type = ModelTypeEnum.passenger
+
     links = []
     response = requests.get(models_drom_url)
     if response.status_code == 200:
@@ -36,7 +42,7 @@ def scrape_models(models_drom_url) -> list[ModelScrape]:
     for link in links:
         name = link.text
         ranges_drom_url = link['href']
-        model = ModelScrape(name=name, ranges_drom_url=ranges_drom_url)
+        model = ModelScrape(name=name, type=_type, ranges_drom_url=ranges_drom_url)
         models.append(model)
 
     return models

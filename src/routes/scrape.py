@@ -26,7 +26,7 @@ def scrape_drom_ru(session: SessionDep):
         scrapped_models = scrape_models(scrapped_make.models_drom_url)
         for scrapped_model in scrapped_models:
             if scrapped_model.name not in session.execute(select(Model.name).where(Model.make_id == make_id)).scalars():
-                model = Model(name=scrapped_model.name, make_id=make_id)
+                model = Model(name=scrapped_model.name, type=scrapped_model.type, make_id=make_id)
                 session.add(model)
                 session.commit()
         time.sleep(1.5)
