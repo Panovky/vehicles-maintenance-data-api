@@ -26,96 +26,90 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
     the drom_response_status_code field will be used to return the status code of the response from drom.ru.
     """
     try:
-        scraped_makes = scrape_makes('https://www.drom.ru/catalog')
+        makes = scrape_makes('https://www.drom.ru/catalog')
         time.sleep(1.5)
-        scraped_makes += scrape_makes('https://www.drom.ru/catalog/lcv')
+
+        makes += scrape_makes('https://www.drom.ru/catalog/lcv')
         time.sleep(1.5)
-        for scraped_make in scraped_makes:
-            if scraped_make.name not in session.execute(select(Make.name)).scalars():
-                make = Make(name=scraped_make.name)
-                session.add(make)
+
+        for make in makes:
+            stmt = select(exists().where(Make.name == make.name))
+            if not session.execute(stmt).scalar():
+                make_db = Make(name=make.name)
+                session.add(make_db)
                 session.commit()
 
-            scraped_models = scrape_models(scraped_make.models_drom_url)
+            models = scrape_models(make.models_drom_url)
             time.sleep(1.5)
-            make_id = session.execute(select(Make.id).where(Make.name == scraped_make.name)).scalar()
-            for scraped_model in scraped_models:
-                if scraped_model.name not in session.execute(
-                        select(Model.name)
-                        .where(Model.make_id == make_id)
-                ).scalars():
-                    model = Model(name=scraped_model.name, type=scraped_model.type, make_id=make_id)
-                    session.add(model)
+
+            stmt = select(Make.id).where(Make.name == make.name)
+            make_id = session.execute(stmt).scalar()
+
+            for model in models:
+                stmt = select(exists().where(and_(Model.make_id == make_id, Model.name == model.name)))
+                if not session.execute(stmt).scalar():
+                    model_db = Model(name=model.name, type=model.type, make_id=make_id)
+                    session.add(model_db)
                     session.commit()
 
-                scraped_ranges = scrape_ranges_and_generations(scraped_model.ranges_and_generations_drom_url)
+                ranges = scrape_ranges_and_generations(model.ranges_and_generations_drom_url)
                 time.sleep(1.5)
-                model_id = session.execute(
-                    select(Model.id)
-                    .where(and_(Model.make_id == make_id, Model.name == scraped_model.name))
-                ).scalar()
-                for scraped_range in scraped_ranges:
-                    if scraped_range.name not in session.execute(
-                            select(Range.name)
-                            .where(Range.model_id == model_id)
-                    ).scalars():
-                        _range = Range(name=scraped_range.name, model_id=model_id)
-                        session.add(_range)
+
+                stmt = select(Model.id).where(and_(Model.make_id == make_id, Model.name == model.name))
+                model_id = session.execute(stmt).scalar()
+
+                for _range in ranges:
+                    stmt = select(exists().where(and_(Range.model_id == model_id, Range.name == model.name)))
+                    if not session.execute(stmt).scalar():
+                        range_db = Range(name=_range.name, model_id=model_id)
+                        session.add(range_db)
                         session.commit()
 
-                    scraped_generations = scraped_range.generations
-                    range_id = session.execute(
-                        select(Range.id)
-                        .where(and_(Range.model_id == model_id, Range.name == scraped_range.name))
-                    ).scalar()
-                    for scraped_generation in scraped_generations:
-                        if scraped_generation.photo_url not in session.execute(
-                                select(Generation.photo_url)
-                                .where(Generation.range_id == range_id)
-                        ).scalars():
-                            generation = Generation(
-                                photo_url=scraped_generation.photo_url,
-                                full_name=scraped_generation.full_name,
-                                short_name=scraped_generation.short_name,
-                                vehicle_body=scraped_generation.vehicle_body,
+                    stmt = select(Range.id).where(and_(Range.model_id == model_id, Range.name == _range.name))
+                    range_id = session.execute(stmt).scalar()
+
+                    for generation in _range.generations:
+                        stmt = select(exists().where(and_(
+                            Generation.range_id == range_id, Generation.photo_url == generation.photo_url)))
+                        if not session.execute(stmt).scalar():
+                            generation_db = Generation(
+                                photo_url=generation.photo_url,
+                                full_name=generation.full_name,
+                                short_name=generation.short_name,
+                                vehicle_body=generation.vehicle_body,
                                 range_id=range_id
                             )
-                            session.add(generation)
+                            session.add(generation_db)
                             session.commit()
 
-                            scraped_configurations = scrape_configurations(scraped_model.ranges_and_generations_drom_url+scraped_generation.configurations_drom_url)
+                            url = model.ranges_and_generations_drom_url + generation.configurations_drom_url
+                            configurations = scrape_configurations(url)
                             time.sleep(1.5)
-                            generation_id = session.execute(
-                                select(Generation.id)
-                                .where(and_(
-                                    Generation.range_id == range_id,
-                                    Generation.photo_url == scraped_generation.photo_url
-                                ))
-                            ).scalar()
-                            for scraped_configuration in scraped_configurations:
-                                if not session.execute(
-                                        select(
-                                            exists()
-                                            .where(and_(
-                                                Configuration.generation_id == generation_id,
-                                                Configuration.engine_capacity == scraped_configuration.engine_capacity,
-                                                Configuration.engine_power == scraped_configuration.engine_power,
-                                                Configuration.engine_type == scraped_configuration.engine_type,
-                                                Configuration.transmission == scraped_configuration.transmission,
-                                                Configuration.drive == scraped_configuration.drive
-                                            ))
-                                        )
-                                ).scalar():
 
-                                    configuration = Configuration(
-                                        engine_capacity=scraped_configuration.engine_capacity,
-                                        engine_power=scraped_configuration.engine_power,
-                                        engine_type=scraped_configuration.engine_type,
-                                        transmission=scraped_configuration.transmission,
-                                        drive=scraped_configuration.drive,
+                            stmt = select(Generation.id).where(and_(
+                                    Generation.range_id == range_id, Generation.photo_url == generation.photo_url
+                            ))
+                            generation_id = session.execute(stmt).scalar()
+
+                            for configuration in configurations:
+                                stmt = select(exists().where(and_(
+                                    Configuration.generation_id == generation_id,
+                                    Configuration.engine_capacity == configuration.engine_capacity,
+                                    Configuration.engine_power == configuration.engine_power,
+                                    Configuration.engine_type == configuration.engine_type,
+                                    Configuration.transmission == configuration.transmission,
+                                    Configuration.drive == configuration.drive
+                                )))
+                                if not session.execute(stmt).scalar():
+                                    configuration_db = Configuration(
+                                        engine_capacity=configuration.engine_capacity,
+                                        engine_power=configuration.engine_power,
+                                        engine_type=configuration.engine_type,
+                                        transmission=configuration.transmission,
+                                        drive=configuration.drive,
                                         generation_id=generation_id,
                                     )
-                                    session.add(configuration)
+                                    session.add(configuration_db)
                                     session.commit()
 
     except UnexpectedDromResponseError as e:
