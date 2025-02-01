@@ -21,7 +21,30 @@ class ModelScrape(BaseModel):
     """
     name: str
     type: ModelTypeEnum
-    ranges_drom_url: str
+    ranges_and_generations_drom_url: str
+
+
+class GenerationScrape(BaseModel):
+    """
+    The model representing the data of vehicle generation scraped from drom.ru.
+
+    The model used for further data scraping.
+    """
+    photo_url: str
+    full_name: str
+    short_name: str
+    vehicle_body: str
+    configurations_drom_url: str
+
+
+class RangeScrape(BaseModel):
+    """
+    The model representing the data of vehicle models range scraped from drom.ru.
+
+    The model used for further data scraping.
+    """
+    name: str
+    generations: list[GenerationScrape]
 
 
 class ScrapeResponse(BaseModel):

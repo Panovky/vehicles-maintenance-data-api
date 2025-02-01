@@ -8,7 +8,7 @@ class Generation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     photo_url: Mapped[str] = mapped_column(String(255), nullable=False)
-    full_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     short_name: Mapped[str] = mapped_column(String(30), nullable=False)
     vehicle_body: Mapped[str] = mapped_column(String(30), nullable=False)
     range_id: Mapped[int] = mapped_column(Integer, ForeignKey('ranges.id'))

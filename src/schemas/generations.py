@@ -9,3 +9,4 @@ class GenerationRead(BaseModel):
     full_name: Annotated[str, Field(example='Renault Duster (HM)\n11.2020 - 07.2022')]
     short_name: Annotated[str, Field(example='2 поколение')]
     vehicle_body: Annotated[str, Field(example='Джип/SUV 5 дв.')]
+    range_id: Annotated[int, Field(example=1)]
