@@ -125,9 +125,9 @@ def scrape_configurations(configurations_drom_url) -> list[ConfigurationScrape]:
 
     configurations = []
     for th in ths:
-        configuration_info_list = th.text.split(',')
+        configuration_info_list = list(map(str.strip, th.text.split(',')))
 
-        if ' электричество' not in configuration_info_list:
+        if 'электричество' not in configuration_info_list or 'гибрид' in configuration_info_list:
             configuration = ConfigurationScrape(
                 engine_capacity=configuration_info_list[0].replace(' л', ''),
                 engine_power=configuration_info_list[1].replace(' л.с.', ''),
