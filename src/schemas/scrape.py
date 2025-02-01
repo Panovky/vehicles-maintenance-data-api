@@ -47,6 +47,19 @@ class RangeScrape(BaseModel):
     generations: list[GenerationScrape]
 
 
+class ConfigurationScrape(BaseModel):
+    """
+    The model representing the data of vehicle configurations scraped from drom.ru.
+
+    The model used for further data scraping.
+    """
+    engine_capacity: float | None
+    engine_power: int
+    engine_type: str
+    transmission: str
+    drive: str
+
+
 class ScrapeResponse(BaseModel):
     """The model describes the response to a request for data scraping from drom.ru."""
     detail: Annotated[str, Field(example='Unexpected drom.ru response error occurred while scraping models.')]

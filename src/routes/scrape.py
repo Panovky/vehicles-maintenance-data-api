@@ -1,11 +1,12 @@
 import time
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, exists
 from src.dependencies import SessionDep
-from src.models import Make, Model, Range, Generation
+from src.models import Make, Model, Range, Generation, Configuration
 from src.schemas import ScrapeResponse
-from src.services.scrape import scrape_makes, scrape_models, scrape_ranges_and_generations, UnexpectedDromResponseError
+from src.services.scrape import scrape_makes, scrape_models, scrape_ranges_and_generations, scrape_configurations,\
+    UnexpectedDromResponseError
 
 
 router = APIRouter(
@@ -81,6 +82,41 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                             )
                             session.add(generation)
                             session.commit()
+
+                            scraped_configurations = scrape_configurations(scraped_model.ranges_and_generations_drom_url+scraped_generation.configurations_drom_url)
+                            time.sleep(1.5)
+                            generation_id = session.execute(
+                                select(Generation.id)
+                                .where(and_(
+                                    Generation.range_id == range_id,
+                                    Generation.photo_url == scraped_generation.photo_url
+                                ))
+                            ).scalar()
+                            for scraped_configuration in scraped_configurations:
+                                if not session.execute(
+                                        select(
+                                            exists()
+                                            .where(and_(
+                                                Configuration.generation_id == generation_id,
+                                                Configuration.engine_capacity == scraped_configuration.engine_capacity,
+                                                Configuration.engine_power == scraped_configuration.engine_power,
+                                                Configuration.engine_type == scraped_configuration.engine_type,
+                                                Configuration.transmission == scraped_configuration.transmission,
+                                                Configuration.drive == scraped_configuration.drive
+                                            ))
+                                        )
+                                ).scalar():
+
+                                    configuration = Configuration(
+                                        engine_capacity=scraped_configuration.engine_capacity,
+                                        engine_power=scraped_configuration.engine_power,
+                                        engine_type=scraped_configuration.engine_type,
+                                        transmission=scraped_configuration.transmission,
+                                        drive=scraped_configuration.drive,
+                                        generation_id=generation_id,
+                                    )
+                                    session.add(configuration)
+                                    session.commit()
 
     except UnexpectedDromResponseError as e:
         return JSONResponse(content={'detail': e.detail, 'drom_response_status_code': e.drom_response_status_code})
