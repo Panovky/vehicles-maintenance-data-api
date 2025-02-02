@@ -82,35 +82,35 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                             session.add(generation_db)
                             session.commit()
 
-                            url = model.ranges_and_generations_drom_url + generation.configurations_drom_url
-                            configurations = scrape_configurations(url)
-                            time.sleep(1.5)
+                        url = model.ranges_and_generations_drom_url + generation.configurations_drom_url
+                        configurations = scrape_configurations(url)
+                        time.sleep(1.5)
 
-                            stmt = select(Generation.id).where(and_(
-                                    Generation.range_id == range_id, Generation.photo_url == generation.photo_url
-                            ))
-                            generation_id = session.execute(stmt).scalar()
+                        stmt = select(Generation.id).where(and_(
+                                Generation.range_id == range_id, Generation.photo_url == generation.photo_url
+                        ))
+                        generation_id = session.execute(stmt).scalar()
 
-                            for configuration in configurations:
-                                stmt = select(exists().where(and_(
-                                    Configuration.generation_id == generation_id,
-                                    Configuration.engine_capacity == configuration.engine_capacity,
-                                    Configuration.engine_power == configuration.engine_power,
-                                    Configuration.engine_type == configuration.engine_type,
-                                    Configuration.transmission == configuration.transmission,
-                                    Configuration.drive == configuration.drive
-                                )))
-                                if not session.execute(stmt).scalar():
-                                    configuration_db = Configuration(
-                                        engine_capacity=configuration.engine_capacity,
-                                        engine_power=configuration.engine_power,
-                                        engine_type=configuration.engine_type,
-                                        transmission=configuration.transmission,
-                                        drive=configuration.drive,
-                                        generation_id=generation_id,
-                                    )
-                                    session.add(configuration_db)
-                                    session.commit()
+                        for configuration in configurations:
+                            stmt = select(exists().where(and_(
+                                Configuration.generation_id == generation_id,
+                                Configuration.engine_capacity == configuration.engine_capacity,
+                                Configuration.engine_power == configuration.engine_power,
+                                Configuration.engine_type == configuration.engine_type,
+                                Configuration.transmission == configuration.transmission,
+                                Configuration.drive == configuration.drive
+                            )))
+                            if not session.execute(stmt).scalar():
+                                configuration_db = Configuration(
+                                    engine_capacity=configuration.engine_capacity,
+                                    engine_power=configuration.engine_power,
+                                    engine_type=configuration.engine_type,
+                                    transmission=configuration.transmission,
+                                    drive=configuration.drive,
+                                    generation_id=generation_id,
+                                )
+                                session.add(configuration_db)
+                                session.commit()
 
     except UnexpectedDromResponseError as e:
         return JSONResponse(content={'detail': e.detail, 'drom_response_status_code': e.drom_response_status_code})
