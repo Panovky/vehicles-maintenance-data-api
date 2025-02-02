@@ -7,7 +7,7 @@ class ConfigurationRead(BaseModel):
     """The model representing the vehicle configuration data to be returned to the client."""
     id: Annotated[int, Field(example=1)]
     engine_capacity: Annotated[float | None, Field(example='1.3')]
-    engine_power: Annotated[int, Field(example='149')]
-    engine_type: EngineTypeEnum
-    transmission: TransmissionEnum
-    drive: DriveEnum
+    engine_power: Annotated[int | None, Field(example='149')]
+    engine_type: EngineTypeEnum | None
+    transmission: TransmissionEnum | None
+    drive: DriveEnum | None

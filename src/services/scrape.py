@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from src.models import ModelTypeEnum
+from src.models import EngineTypeEnum, TransmissionEnum, DriveEnum
 from src.schemas import MakeScrape, ModelScrape, RangeScrape, GenerationScrape, ConfigurationScrape
 
 
@@ -125,24 +126,42 @@ def scrape_configurations(configurations_drom_url) -> list[ConfigurationScrape]:
 
     configurations = []
     for th in ths:
-        configuration_info_list = list(map(str.strip, th.text.split(',')))
+        configuration_info = th.text
 
-        if 'электричество' not in configuration_info_list or 'гибрид' in configuration_info_list:
-            configuration = ConfigurationScrape(
-                engine_capacity=configuration_info_list[0].replace(' л', ''),
-                engine_power=configuration_info_list[1].replace(' л.с.', ''),
-                engine_type=configuration_info_list[2],
-                transmission=configuration_info_list[3],
-                drive=configuration_info_list[4]
-            )
-        else:
-            configuration = ConfigurationScrape(
-                engine_capacity=None,
-                engine_power=configuration_info_list[0].replace(' л.с.', ''),
-                engine_type=configuration_info_list[1],
-                transmission=configuration_info_list[2],
-                drive=configuration_info_list[3]
-            )
+        engine_type = None
+        for elem in EngineTypeEnum:
+            if (value := elem.value) in configuration_info:
+                engine_type = value
+                break
+
+        transmission = None
+        for elem in TransmissionEnum:
+            if (value := elem.value) in configuration_info:
+                transmission = value
+                break
+
+        drive = None
+        for elem in DriveEnum:
+            if (value := elem.value) in configuration_info:
+                drive = value
+                break
+
+        engine_capacity = None
+        engine_power = None
+        configuration_info_list = configuration_info.split(',')
+        for elem in configuration_info_list:
+            if ' л.с.' in elem:
+                engine_power = elem.replace(' л.с.', '')
+            elif ' л' in elem:
+                engine_capacity = elem.replace(' л', '')
+
+        configuration = ConfigurationScrape(
+            engine_capacity=engine_capacity,
+            engine_power=engine_power,
+            engine_type=engine_type,
+            transmission=transmission,
+            drive=drive
+        )
 
         configurations.append(configuration)
 

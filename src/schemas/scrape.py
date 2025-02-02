@@ -54,10 +54,10 @@ class ConfigurationScrape(BaseModel):
     The model used for further data scraping.
     """
     engine_capacity: float | None
-    engine_power: int
-    engine_type: str
-    transmission: str
-    drive: str
+    engine_power: int | None
+    engine_type: str | None
+    transmission: str | None
+    drive: str | None
 
 
 class ScrapeResponse(BaseModel):
