@@ -6,22 +6,29 @@ from src.schemas import MakeScrape, ModelScrape, RangeScrape, GenerationScrape, 
 
 
 class UnexpectedDromResponseError(Exception):
-    detail: str
+    location: str
+    drom_request_url: str
     drom_response_status_code: int
+    drom_response_reason: str
 
-    def __init__(self, detail, drom_response_status_code):
+    def __init__(self, location, drom_request_url, drom_response_status_code, drom_response_reason):
         super().__init__()
-        self.detail = detail
+        self.location = location
+        self.drom_request_url = drom_request_url
         self.drom_response_status_code = drom_response_status_code
+        self.drom_response_reason = drom_response_reason
 
 
-def scrape_makes(makes_drom_url) -> list[MakeScrape]:
+def scrape_makes(makes_drom_url: str) -> list[MakeScrape]:
     """Return a list of all vehicle makes scraped from specified url in drom.ru."""
 
     response = requests.get(makes_drom_url, allow_redirects=3)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
-            'Unexpected drom.ru response error occurred while scraping makes.', response.status_code
+            'Unexpected drom.ru response error occurred while scraping makes.',
+            makes_drom_url,
+            response.status_code,
+            response.reason
         )
 
     html = BeautifulSoup(response.text, 'html.parser')
@@ -36,13 +43,16 @@ def scrape_makes(makes_drom_url) -> list[MakeScrape]:
     return makes
 
 
-def scrape_models(models_drom_url) -> list[ModelScrape]:
+def scrape_models(models_drom_url: str) -> list[ModelScrape]:
     """Return a list of all vehicle models scraped from specified url in drom.ru."""
 
     response = requests.get(models_drom_url, allow_redirects=3)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
-            'Unexpected drom.ru response error occurred while scraping models.', response.status_code
+            'Unexpected drom.ru response error occurred while scraping models.',
+            models_drom_url,
+            response.status_code,
+            response.reason
         )
 
     html = BeautifulSoup(response.text, 'html.parser')
@@ -61,14 +71,16 @@ def scrape_models(models_drom_url) -> list[ModelScrape]:
     return models
 
 
-def scrape_ranges_and_generations(ranges_and_generations_drom_url) -> list[RangeScrape]:
+def scrape_ranges_and_generations(ranges_and_generations_drom_url: str) -> list[RangeScrape]:
     """Return a list of all vehicles models ranges with them generations list scraped from specified url in drom.ru."""
 
     response = requests.get(ranges_and_generations_drom_url, allow_redirects=3)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
             'Unexpected drom.ru response error occurred while scraping models ranges and generations.',
-            response.status_code
+            ranges_and_generations_drom_url,
+            response.status_code,
+            response.reason
         )
 
     html = BeautifulSoup(response.text, 'html.parser')
@@ -107,13 +119,16 @@ def scrape_ranges_and_generations(ranges_and_generations_drom_url) -> list[Range
     return ranges
 
 
-def scrape_configurations(configurations_drom_url) -> list[ConfigurationScrape]:
+def scrape_configurations(configurations_drom_url: str) -> list[ConfigurationScrape]:
     """Return a list of all vehicle configurations scraped from specified url in drom.ru."""
 
     response = requests.get(configurations_drom_url, allow_redirects=3)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
-            'Unexpected drom.ru response error occurred while scraping configurations.', response.status_code
+            'Unexpected drom.ru response error occurred while scraping configurations.',
+            configurations_drom_url,
+            response.status_code,
+            response.reason
         )
 
     html = BeautifulSoup(response.text, 'html.parser')
@@ -166,3 +181,13 @@ def scrape_configurations(configurations_drom_url) -> list[ConfigurationScrape]:
         configurations.append(configuration)
 
     return configurations
+
+
+def get_unhandled_error_info(e: UnexpectedDromResponseError) -> dict[str, str | int]:
+    """Return a dictionary with data about the error that occurred when receiving a response from the drom.ru."""
+    return {
+        'location': e.location,
+        'drom_request_url': e.drom_request_url,
+        'drom_response_status_code': e.drom_response_status_code,
+        'drom_response_reason': e.drom_response_reason
+    }
