@@ -72,7 +72,7 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
             model_id = session.execute(stmt).scalar()
 
             for _range in ranges:
-                stmt = select(exists().where(and_(Range.model_id == model_id, Range.name == model.name)))
+                stmt = select(exists().where(and_(Range.model_id == model_id, Range.name == _range.name)))
                 if not session.execute(stmt).scalar():
                     range_db = Range(name=_range.name, model_id=model_id)
                     session.add(range_db)
