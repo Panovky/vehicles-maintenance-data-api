@@ -22,7 +22,7 @@ class UnexpectedDromResponseError(Exception):
 def scrape_makes(makes_drom_url: str) -> list[MakeScrape]:
     """Return a list of all vehicle makes scraped from specified url in drom.ru."""
 
-    response = requests.get(makes_drom_url, allow_redirects=3)
+    response = requests.get(makes_drom_url, allow_redirects=False)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
             'Unexpected drom.ru response error occurred while scraping makes.',
@@ -46,7 +46,7 @@ def scrape_makes(makes_drom_url: str) -> list[MakeScrape]:
 def scrape_models(models_drom_url: str) -> list[ModelScrape]:
     """Return a list of all vehicle models scraped from specified url in drom.ru."""
 
-    response = requests.get(models_drom_url, allow_redirects=3)
+    response = requests.get(models_drom_url, allow_redirects=False)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
             'Unexpected drom.ru response error occurred while scraping models.',
@@ -74,7 +74,7 @@ def scrape_models(models_drom_url: str) -> list[ModelScrape]:
 def scrape_ranges_and_generations(ranges_and_generations_drom_url: str) -> list[RangeScrape]:
     """Return a list of all vehicles models ranges with them generations list scraped from specified url in drom.ru."""
 
-    response = requests.get(ranges_and_generations_drom_url, allow_redirects=3)
+    response = requests.get(ranges_and_generations_drom_url, allow_redirects=False)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
             'Unexpected drom.ru response error occurred while scraping models ranges and generations.',
@@ -102,7 +102,7 @@ def scrape_ranges_and_generations(ranges_and_generations_drom_url: str) -> list[
             short_name = generation_info[0].text
             vehicle_body = generation_info[-1].text
 
-            configurations_drom_url = generation_div.find('a')['href']
+            configurations_drom_url = ranges_and_generations_drom_url + generation_div.find('a')['href']
 
             generation = GenerationScrape(
                 photo_url=photo_url,
@@ -122,7 +122,7 @@ def scrape_ranges_and_generations(ranges_and_generations_drom_url: str) -> list[
 def scrape_configurations(configurations_drom_url: str) -> list[ConfigurationScrape]:
     """Return a list of all vehicle configurations scraped from specified url in drom.ru."""
 
-    response = requests.get(configurations_drom_url, allow_redirects=3)
+    response = requests.get(configurations_drom_url, allow_redirects=False)
     if response.status_code != 200:
         raise UnexpectedDromResponseError(
             'Unexpected drom.ru response error occurred while scraping configurations.',
@@ -137,7 +137,7 @@ def scrape_configurations(configurations_drom_url: str) -> list[ConfigurationScr
     })
     ths = []
     for i in range(1, len(trs)):
-        ths = trs[i].find('th')
+        ths += trs[i].find('th')
 
     configurations = []
     for th in ths:

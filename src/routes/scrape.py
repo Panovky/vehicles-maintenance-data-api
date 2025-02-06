@@ -25,14 +25,14 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
     unhandled_errors = []
 
     try:
-        makes = scrape_makes('https://www.drom.ru/catalog')
+        makes = scrape_makes('https://www.drom.ru/catalog/')
         time.sleep(1.5)
     except UnexpectedDromResponseError as e:
         unhandled_errors.append(get_unhandled_error_info(e))
         makes = []
 
     try:
-        makes += scrape_makes('https://www.drom.ru/catalog/lcv')
+        makes += scrape_makes('https://www.drom.ru/catalog/lcv/')
         time.sleep(1.5)
     except UnexpectedDromResponseError as e:
         unhandled_errors.append(get_unhandled_error_info(e))
@@ -95,9 +95,8 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                         session.add(generation_db)
                         session.commit()
 
-                    url = model.ranges_and_generations_drom_url + generation.configurations_drom_url
                     try:
-                        configurations = scrape_configurations(url)
+                        configurations = scrape_configurations(generation.configurations_drom_url)
                         time.sleep(1.5)
                     except UnexpectedDromResponseError as e:
                         unhandled_errors.append(get_unhandled_error_info(e))
