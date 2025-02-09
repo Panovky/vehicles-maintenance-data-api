@@ -7,4 +7,6 @@ class Make(BaseModel):
     __tablename__ = 'makes'
 
     name: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
+
     models = relationship('Model', back_populates='make')
+    vehicles = relationship('Vehicle', back_populates='make')

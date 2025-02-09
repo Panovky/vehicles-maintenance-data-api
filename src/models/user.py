@@ -1,7 +1,7 @@
 import enum
 from datetime import date
 from sqlalchemy import Date, String, CHAR, Enum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models import BaseModel
 
 
@@ -22,3 +22,5 @@ class User(BaseModel):
     role: Mapped[UserRoleEnum] = mapped_column(Enum(UserRoleEnum), nullable=False)
     login: Mapped[str] = mapped_column(String(16), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(60), nullable=False)
+
+    vehicles = relationship('Vehicle', back_populates='user')

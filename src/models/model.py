@@ -15,5 +15,7 @@ class Model(BaseModel):
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     type: Mapped[ModelTypeEnum] = mapped_column(Enum(ModelTypeEnum), nullable=False)
     make_id: Mapped[int] = mapped_column(Integer, ForeignKey('makes.id'))
+
     make = relationship('Make', back_populates='models')
     ranges = relationship('Range', back_populates='model')
+    vehicles = relationship('Vehicle', back_populates='model')

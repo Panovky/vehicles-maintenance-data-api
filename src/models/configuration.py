@@ -41,4 +41,6 @@ class Configuration(BaseModel):
         Enum(*[elem.value for elem in DriveEnum], name='driveenum'), nullable=True, default=None
     )
     generation_id: Mapped[int] = mapped_column(Integer, ForeignKey('generations.id'))
+
     generation = relationship('Generation', back_populates='configurations')
+    vehicles = relationship('Vehicle', back_populates='configuration')
