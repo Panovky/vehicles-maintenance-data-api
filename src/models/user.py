@@ -1,21 +1,18 @@
 import enum
-from datetime import date, datetime
-from sqlalchemy import Integer, DateTime, Date, String, CHAR, Enum
+from datetime import date
+from sqlalchemy import Date, String, CHAR, Enum
 from sqlalchemy.orm import Mapped, mapped_column
-from src.database import Base
+from src.models import BaseModel
 
 
-class UserRoleEnum(str, enum.Enum):
+class UserRoleEnum(enum.Enum):
     owner = 'owner'
     employee = 'employee'
 
 
-class User(Base):
+class User(BaseModel):
     __tablename__ = 'users'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    created: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
-    updated: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     patronymic: Mapped[str | None] = mapped_column(String(40), nullable=True, default=None)

@@ -1,3 +1,4 @@
+from .base import BaseModel
 from .configuration import Configuration, EngineTypeEnum, TransmissionEnum, DriveEnum
 from .generation import Generation
 from .make import Make
