@@ -1,20 +1,21 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import Base
+from src.models import BaseModel
 
 
-class ModelTypeEnum(str, enum.Enum):
+class ModelTypeEnum(enum.Enum):
     passenger = 'passenger'
     truck = 'truck'
 
 
-class Model(Base):
+class Model(BaseModel):
     __tablename__ = 'models'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     type: Mapped[ModelTypeEnum] = mapped_column(Enum(ModelTypeEnum), nullable=False)
     make_id: Mapped[int] = mapped_column(Integer, ForeignKey('makes.id'))
+
     make = relationship('Make', back_populates='models')
     ranges = relationship('Range', back_populates='model')
+    vehicles = relationship('Vehicle', back_populates='model')

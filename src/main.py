@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes import users, services, makes, models, ranges, generations, configurations, scrape
+from src.routes import users, services, makes, models, ranges, generations, configurations, scrape, vehicles
 
 app = FastAPI()
 
@@ -20,3 +20,4 @@ app.include_router(ranges.router)
 app.include_router(generations.router)
 app.include_router(configurations.router)
 app.include_router(scrape.router)
+app.include_router(vehicles.router)
