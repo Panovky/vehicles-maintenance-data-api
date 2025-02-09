@@ -37,8 +37,8 @@ class Vehicle(BaseModel):
     )
     manufacture_year: Mapped[int] = mapped_column(Integer, nullable=False)
     mileage: Mapped[int] = mapped_column(Integer, nullable=False)
-    vin: Mapped[str] = mapped_column(String(17), nullable=False)
-    registration_number: Mapped[str] = mapped_column(String(9), nullable=False)
+    vin: Mapped[str] = mapped_column(String(17), nullable=False, unique=True)
+    registration_number: Mapped[str] = mapped_column(String(9), nullable=False, unique=True)
 
     user = relationship('User', back_populates='vehicles')
     make = relationship('Make', back_populates='vehicles')
