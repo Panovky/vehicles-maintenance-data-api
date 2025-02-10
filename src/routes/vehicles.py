@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Path, status
 from fastapi.responses import Response
-from sqlalchemy import select, exists
+from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
 from src.dependencies import SessionDep
 from src.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
@@ -44,12 +44,14 @@ def update_vehicle(
         raise VehicleNotFoundException()
 
     if vehicle_data.vin:
-        stmt = select(exists().where(Vehicle.vin == vehicle_data.vin))
+        stmt = select(exists().where(and_(Vehicle.vin == vehicle_data.vin, Vehicle.id != vehicle_id)))
         if session.execute(stmt).scalar():
             raise VINIsNotUniqueException()
 
     if vehicle_data.registration_number:
-        stmt = select(exists().where(Vehicle.registration_number == vehicle_data.registration_number))
+        stmt = select(exists().where(and_(
+            Vehicle.registration_number == vehicle_data.registration_number, Vehicle.id != vehicle_id
+        )))
         if session.execute(stmt).scalar():
             raise RegistrationNumberIsNotUniqueException()
 
