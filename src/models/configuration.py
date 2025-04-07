@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, Float, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
 class EngineTypeEnum(enum.Enum):
@@ -26,7 +26,7 @@ class DriveEnum(enum.Enum):
     full = 'полный привод (4WD)'
 
 
-class Configuration(BaseModel):
+class Configuration(Base):
     __tablename__ = 'configurations'
 
     engine_capacity: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)

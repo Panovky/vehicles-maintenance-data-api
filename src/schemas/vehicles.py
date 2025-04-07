@@ -7,8 +7,8 @@ from src.models import VehicleColorEnum
 class VehicleRead(BaseModel):
     """The model representing the vehicle data to be returned to the client."""
     id: Annotated[int, Field(example=1)]
-    created: datetime
-    updated: datetime
+    created_at: datetime
+    updated_at: datetime
     user_id: Annotated[int, Field(example=1)]
     make_id: Annotated[int, Field(example=1)]
     model_id: Annotated[int, Field(example=1)]

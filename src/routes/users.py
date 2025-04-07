@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Path, Query
 from fastapi.responses import Response
 from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
-from src.dependencies import SessionDep
+from src.database import AsyncSessionDep
 from src.exceptions import (
     UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, UserLoginIsNotUniqueException
 )
@@ -21,9 +21,9 @@ router = APIRouter(
     responses={200: {'description': 'User successfully received'}, 404: {'description': 'User not found'}},
     summary='Return the user'
 )
-def get_user(user_id: Annotated[int, Path(gt=0)], session: SessionDep) -> UserRead:
+async def get_user(user_id: Annotated[int, Path(gt=0)], async_session: AsyncSessionDep) -> UserRead:
     """Return the user with the specified id."""
-    user = session.get(User, user_id)
+    user = await async_session.get(User, user_id)
     if not user:
         raise UserNotFoundException()
     return user
@@ -38,9 +38,11 @@ def get_user(user_id: Annotated[int, Path(gt=0)], session: SessionDep) -> UserRe
     },
     summary='Update the user'
 )
-def update_user(user_id: Annotated[int, Path(gt=0)], user_data: UserUpdate, session: SessionDep) -> UserRead:
+async def update_user(
+        user_id: Annotated[int, Path(gt=0)], user_data: UserUpdate, async_session: AsyncSessionDep
+) -> UserRead:
     """Update the user with the specified id with the given information (blank values are ignored)."""
-    user = session.get(User, user_id)
+    user = await async_session.get(User, user_id)
     if not user:
         raise UserNotFoundException()
 
@@ -48,26 +50,29 @@ def update_user(user_id: Annotated[int, Path(gt=0)], user_data: UserUpdate, sess
         stmt = select(exists().where(and_(
             User.role == user_data.role, User.phone == user_data.phone, User.id != user_id
         )))
-        if session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if result.scalar():
             raise UserPhoneIsNotUniqueException(user_data.role)
 
     if user_data.email:
         stmt = select(exists().where(and_(
             User.role == user_data.role, User.email == user_data.email, User.id != user_id
         )))
-        if session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if result.scalar():
             raise UserEmailIsNotUniqueException(user_data.role)
 
     if user_data.login:
         stmt = select(exists().where(and_(User.login == user_data.login, User.id != user_id)))
-        if session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if result.scalar():
             raise UserLoginIsNotUniqueException()
 
     for key, value in user_data.model_dump(exclude_none=True).items():
         setattr(user, key, value)
 
-    session.commit()
-    session.refresh(user)
+    await async_session.commit()
+    await async_session.refresh(user)
     return user
 
 
@@ -80,19 +85,19 @@ def update_user(user_id: Annotated[int, Path(gt=0)], user_data: UserUpdate, sess
     },
     summary='Delete the user'
 )
-def delete_user(user_id: Annotated[int, Path(gt=0)], session: SessionDep) -> Response:
+async def delete_user(user_id: Annotated[int, Path(gt=0)], async_session: AsyncSessionDep) -> Response:
     """Delete the user with the specified id."""
-    user = session.get(User, user_id)
+    user = await async_session.get(User, user_id)
     if not user:
         raise UserNotFoundException()
-    session.delete(user)
-    session.commit()
+    await async_session.delete(user)
+    await async_session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/', responses={200: {'description': 'Users successfully received'}}, summary='Return a list of users')
-def get_users(
-        session: SessionDep,
+async def get_users(
+        async_session: AsyncSessionDep,
         user_role: Annotated[UserRoleEnum | None, Query(alias='user-role')] = None,
         limit: int = 10, offset: int = 0
 ) -> list[UserRead]:
@@ -101,10 +106,10 @@ def get_users(
     If no role is specified, a list of users with both roles will be returned.
     """
     if user_role:
-        users = session.execute(select(User).where(User.role == user_role).offset(offset).limit(limit)).scalars()
+        result = await async_session.execute(select(User).where(User.role == user_role).offset(offset).limit(limit))
     else:
-        users = session.execute(select(User).offset(offset).limit(limit)).scalars()
-    return users
+        result = await async_session.execute(select(User).offset(offset).limit(limit))
+    return result.scalars()
 
 
 @router.post(
@@ -117,25 +122,28 @@ def get_users(
     },
     summary='Create the user'
 )
-def create_user(user_data: UserCreate, session: SessionDep) -> Any:
+async def create_user(user_data: UserCreate, async_session: AsyncSessionDep) -> Any:
     """Create the user with the given information."""
 
     stmt = select(exists().where(and_(User.role == user_data.role, User.phone == user_data.phone)))
-    if session.execute(stmt).scalar():
+    result = await async_session.execute(stmt)
+    if result.scalar():
         raise UserPhoneIsNotUniqueException(user_data.role)
 
     stmt = select(exists().where(and_(User.role == user_data.role, User.email == user_data.email)))
-    if session.execute(stmt).scalar():
+    result = await async_session.execute(stmt)
+    if result.scalar():
         raise UserEmailIsNotUniqueException(user_data.role)
 
     stmt = select(exists().where(and_(User.login == user_data.login)))
-    if session.execute(stmt).scalar():
+    result = await async_session.execute(stmt)
+    if result.scalar():
         raise UserLoginIsNotUniqueException()
 
     user_data_dict = {key: value for key, value in user_data.model_dump().items() if key != 'password'}
     password_hash = hash_password(user_data.password)
     user = User(**user_data_dict, password_hash=password_hash)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
     return user

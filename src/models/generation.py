@@ -1,9 +1,9 @@
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
-class Generation(BaseModel):
+class Generation(Base):
     __tablename__ = 'generations'
 
     photo_url: Mapped[str] = mapped_column(String(255), nullable=False)

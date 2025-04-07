@@ -1,9 +1,9 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
-from src.models import BaseModel
+from src.database import Base
 
 
-class Service(BaseModel):
+class Service(Base):
     __tablename__ = 'services'
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)

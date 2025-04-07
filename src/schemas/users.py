@@ -15,8 +15,8 @@ def validate_birthday(birthday: date) -> date:
 class UserRead(BaseModel):
     """The model representing the user data to be returned to the client."""
     id: Annotated[int, Field(example=1)]
-    created: datetime
-    updated: datetime
+    created_at: datetime
+    updated_at: datetime
     last_name: Annotated[str, Field(example="Филатов")]
     first_name: Annotated[str, Field(example="Никита")]
     patronymic: Annotated[str | None, Field(example="Андреевич")]

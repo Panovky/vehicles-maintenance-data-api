@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
 class ModelTypeEnum(enum.Enum):
@@ -9,7 +9,7 @@ class ModelTypeEnum(enum.Enum):
     truck = 'truck'
 
 
-class Model(BaseModel):
+class Model(Base):
     __tablename__ = 'models'
 
     name: Mapped[str] = mapped_column(String(40), nullable=False)

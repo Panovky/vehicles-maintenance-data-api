@@ -2,7 +2,7 @@ from fastapi import APIRouter, Path, status
 from fastapi.responses import Response
 from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
-from src.dependencies import SessionDep
+from src.database import AsyncSessionDep
 from src.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
 from src.models import Vehicle
 from src.schemas import VehicleRead, VehicleCreate, VehicleUpdate
@@ -18,9 +18,9 @@ router = APIRouter(
     responses={200: {'description': 'Vehicle successfully received'}, 404: {'description': 'Vehicle not found'}},
     summary='Return the vehicle'
 )
-def get_vehicle(vehicle_id: Annotated[int, Path(gt=0)], session: SessionDep) -> VehicleRead:
+async def get_vehicle(vehicle_id: Annotated[int, Path(gt=0)], async_session: AsyncSessionDep) -> VehicleRead:
     """Return the vehicle with the specified id."""
-    vehicle = session.get(Vehicle, vehicle_id)
+    vehicle = await async_session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise VehicleNotFoundException()
     return vehicle
@@ -35,24 +35,26 @@ def get_vehicle(vehicle_id: Annotated[int, Path(gt=0)], session: SessionDep) -> 
     },
     summary='Update the vehicle'
 )
-def update_vehicle(
-        vehicle_id: Annotated[int, Path(gt=0)], vehicle_data: VehicleUpdate, session: SessionDep
+async def update_vehicle(
+        vehicle_id: Annotated[int, Path(gt=0)], vehicle_data: VehicleUpdate, async_session: AsyncSessionDep
 ) -> VehicleRead:
     """Update the vehicle with the specified id with the given information (blank values are ignored)."""
-    vehicle = session.get(Vehicle, vehicle_id)
+    vehicle = await async_session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise VehicleNotFoundException()
 
     if vehicle_data.vin:
         stmt = select(exists().where(and_(Vehicle.vin == vehicle_data.vin, Vehicle.id != vehicle_id)))
-        if session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if result.scalar():
             raise VINIsNotUniqueException()
 
     if vehicle_data.registration_number:
         stmt = select(exists().where(and_(
             Vehicle.registration_number == vehicle_data.registration_number, Vehicle.id != vehicle_id
         )))
-        if session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if result.scalar():
             raise RegistrationNumberIsNotUniqueException()
 
     for key, value in vehicle_data.model_dump(exclude_none=True).items():
@@ -60,8 +62,8 @@ def update_vehicle(
             setattr(vehicle, key, value)
         else:
             setattr(vehicle, key, value.value)
-    session.commit()
-    session.refresh(vehicle)
+    await async_session.commit()
+    await async_session.refresh(vehicle)
     return vehicle
 
 
@@ -73,13 +75,13 @@ def update_vehicle(
     },
     summary='Delete the vehicle'
 )
-def delete_vehicle(vehicle_id: Annotated[int, Path(gt=0)], session: SessionDep) -> Response:
+async def delete_vehicle(vehicle_id: Annotated[int, Path(gt=0)], async_session: AsyncSessionDep) -> Response:
     """Delete the vehicle with the specified id."""
-    vehicle = session.get(Vehicle, vehicle_id)
+    vehicle = await async_session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise VehicleNotFoundException()
-    session.delete(vehicle)
-    session.commit()
+    await async_session.delete(vehicle)
+    await async_session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -88,10 +90,10 @@ def delete_vehicle(vehicle_id: Annotated[int, Path(gt=0)], session: SessionDep) 
     responses={200: {'description': 'Vehicles successfully received'}},
     summary='Return a list of vehicles'
 )
-def get_vehicles(session: SessionDep, limit: int = 10, offset: int = 0) -> list[VehicleRead]:
+async def get_vehicles(async_session: AsyncSessionDep, limit: int = 10, offset: int = 0) -> list[VehicleRead]:
     """Return a list of vehicles of a given length (limit), starting from a given table entry (offset)."""
-    vehicles = session.execute(select(Vehicle).offset(offset).limit(limit)).scalars()
-    return vehicles
+    result = await async_session.execute(select(Vehicle).offset(offset).limit(limit))
+    return result.scalars()
 
 
 @router.post(
@@ -103,21 +105,22 @@ def get_vehicles(session: SessionDep, limit: int = 10, offset: int = 0) -> list[
     },
     summary='Create the vehicle'
 )
-def create_vehicle(vehicle_data: VehicleCreate, session: SessionDep) -> Any:
+async def create_vehicle(vehicle_data: VehicleCreate, async_session: AsyncSessionDep) -> Any:
     """Create the vehicle with the given information."""
 
     stmt = select(exists().where(Vehicle.vin == vehicle_data.vin))
-    if session.execute(stmt).scalar():
+    result = await async_session.execute(stmt)
+    if result.scalar():
         raise VINIsNotUniqueException()
 
     stmt = select(exists().where(Vehicle.registration_number == vehicle_data.registration_number))
-    if session.execute(stmt).scalar():
+    result = await async_session.execute(stmt)
+    if result.scalar():
         raise RegistrationNumberIsNotUniqueException()
 
     vehicle_data_dict = {key: value for key, value in vehicle_data.model_dump().items() if key != 'color'}
     vehicle = Vehicle(**vehicle_data_dict, color=vehicle_data.color.value)
-    session.add(vehicle)
-    session.commit()
-    session.refresh(vehicle)
+    async_session.add(vehicle)
+    await async_session.commit()
+    await async_session.refresh(vehicle)
     return vehicle
-

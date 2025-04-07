@@ -1,9 +1,9 @@
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
-class Range(BaseModel):
+class Range(Base):
     __tablename__ = 'ranges'
 
     name: Mapped[str] = mapped_column(String(70), nullable=False)

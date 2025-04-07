@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from sqlalchemy import select
-from src.dependencies import SessionDep
+from src.database import AsyncSessionDep
 from src.models import Make
 from src.schemas import MakeRead
 
@@ -11,14 +11,14 @@ router = APIRouter(
 
 
 @router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of makes')
-def get_makes(session: SessionDep, query: str | None = None) -> list[MakeRead]:
+async def get_makes(async_session: AsyncSessionDep, query: str | None = None) -> list[MakeRead]:
     """
     Return a list of all vehicle makes (the list is sorted alphabetically).
     If the query parameter is specified, only those vehicle makes whose names include this string
     will be returned (string case is irrelevant).
     """
     if query:
-        makes = session.execute(select(Make).where(Make.name.ilike(f'%{query}%')).order_by(Make.name)).scalars()
+        result = await async_session.execute(select(Make).where(Make.name.ilike(f'%{query}%')).order_by(Make.name))
     else:
-        makes = session.execute(select(Make).order_by(Make.name)).scalars()
-    return makes
+        result = await async_session.execute(select(Make).order_by(Make.name))
+    return result.scalars()

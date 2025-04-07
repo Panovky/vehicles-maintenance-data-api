@@ -2,7 +2,7 @@ import time
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, and_, exists
-from src.dependencies import SessionDep
+from src.database import AsyncSessionDep
 from src.models import Make, Model, Range, Generation, Configuration
 from src.schemas import ScrapeResponse
 from src.services.scrape import scrape_makes, scrape_models, scrape_ranges_and_generations, scrape_configurations,\
@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.post('/', responses={200: {'model': ScrapeResponse}}, summary='Scrape drom.ru')
-def scrape_drom_ru(session: SessionDep) -> JSONResponse:
+async def scrape_drom_ru(async_session: AsyncSessionDep) -> JSONResponse:
     """
     Scrape vehicles makes, models, models ranges, generations and configurations from drom.ru.
 
@@ -39,10 +39,11 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
 
     for make in makes:
         stmt = select(exists().where(Make.name == make.name))
-        if not session.execute(stmt).scalar():
+        result = await async_session.execute(stmt)
+        if not result.scalar():
             make_db = Make(name=make.name)
-            session.add(make_db)
-            session.commit()
+            async_session.add(make_db)
+            await async_session.commit()
 
         try:
             models = scrape_models(make.models_drom_url)
@@ -52,14 +53,16 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
             models = []
 
         stmt = select(Make.id).where(Make.name == make.name)
-        make_id = session.execute(stmt).scalar()
+        result = await async_session.execute(stmt)
+        make_id = result.scalar()
 
         for model in models:
             stmt = select(exists().where(and_(Model.make_id == make_id, Model.name == model.name)))
-            if not session.execute(stmt).scalar():
+            result = await async_session.execute(stmt)
+            if not result.scalar():
                 model_db = Model(name=model.name, type=model.type, make_id=make_id)
-                session.add(model_db)
-                session.commit()
+                async_session.add(model_db)
+                await async_session.commit()
 
             try:
                 ranges = scrape_ranges_and_generations(model.ranges_and_generations_drom_url)
@@ -69,22 +72,26 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                 ranges = []
 
             stmt = select(Model.id).where(and_(Model.make_id == make_id, Model.name == model.name))
-            model_id = session.execute(stmt).scalar()
+            result = await async_session.execute(stmt)
+            model_id = result.scalar()
 
             for _range in ranges:
                 stmt = select(exists().where(and_(Range.model_id == model_id, Range.name == _range.name)))
-                if not session.execute(stmt).scalar():
+                result = await async_session.execute(stmt)
+                if not result.scalar():
                     range_db = Range(name=_range.name, model_id=model_id)
-                    session.add(range_db)
-                    session.commit()
+                    async_session.add(range_db)
+                    await async_session.commit()
 
                 stmt = select(Range.id).where(and_(Range.model_id == model_id, Range.name == _range.name))
-                range_id = session.execute(stmt).scalar()
+                result = await async_session.execute(stmt)
+                range_id = result.scalar()
 
                 for generation in _range.generations:
                     stmt = select(exists().where(and_(
                         Generation.range_id == range_id, Generation.photo_url == generation.photo_url)))
-                    if not session.execute(stmt).scalar():
+                    result = await async_session.execute(stmt)
+                    if not result.scalar():
                         generation_db = Generation(
                             photo_url=generation.photo_url,
                             full_name=generation.full_name,
@@ -92,8 +99,8 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                             vehicle_body=generation.vehicle_body,
                             range_id=range_id
                         )
-                        session.add(generation_db)
-                        session.commit()
+                        async_session.add(generation_db)
+                        await async_session.commit()
 
                     try:
                         configurations = scrape_configurations(generation.configurations_drom_url)
@@ -105,7 +112,8 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                     stmt = select(Generation.id).where(and_(
                             Generation.range_id == range_id, Generation.photo_url == generation.photo_url
                     ))
-                    generation_id = session.execute(stmt).scalar()
+                    result = await async_session.execute(stmt)
+                    generation_id = result.scalar()
 
                     for configuration in configurations:
                         stmt = select(exists().where(and_(
@@ -116,7 +124,8 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                             Configuration.transmission == configuration.transmission,
                             Configuration.drive == configuration.drive
                         )))
-                        if not session.execute(stmt).scalar():
+                        result = await async_session.execute(stmt)
+                        if not result.scalar():
                             configuration_db = Configuration(
                                 engine_capacity=configuration.engine_capacity,
                                 engine_power=configuration.engine_power,
@@ -125,8 +134,8 @@ def scrape_drom_ru(session: SessionDep) -> JSONResponse:
                                 drive=configuration.drive,
                                 generation_id=generation_id,
                             )
-                            session.add(configuration_db)
-                            session.commit()
+                            async_session.add(configuration_db)
+                            await async_session.commit()
 
     return JSONResponse(content={
         'detail': 'Data from drom.ru successfully scraped.',

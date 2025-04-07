@@ -6,8 +6,8 @@ from typing import Annotated
 class ServiceRead(BaseModel):
     """The model representing the service data to be returned to the client."""
     id: Annotated[int, Field(example=1)]
-    created: datetime
-    updated: datetime
+    created_at: datetime
+    updated_at: datetime
     name: Annotated[str, Field(example='LeCar Service')]
     address: Annotated[str, Field(example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б')]
     summary: Annotated[str | None, Field(example='Сервис по ремонту авто любой сложности.')]

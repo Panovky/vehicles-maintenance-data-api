@@ -2,7 +2,7 @@ import enum
 from datetime import date
 from sqlalchemy import Date, String, CHAR, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
 class UserRoleEnum(enum.Enum):
@@ -10,7 +10,7 @@ class UserRoleEnum(enum.Enum):
     employee = 'employee'
 
 
-class User(BaseModel):
+class User(Base):
     __tablename__ = 'users'
 
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
