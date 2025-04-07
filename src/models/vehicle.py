@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import Integer, String, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models import BaseModel
+from src.database import Base
 
 
 class VehicleColorEnum(enum.Enum):
@@ -23,7 +23,7 @@ class VehicleColorEnum(enum.Enum):
     black = 'черный'
 
 
-class Vehicle(BaseModel):
+class Vehicle(Base):
     __tablename__ = 'vehicles'
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))

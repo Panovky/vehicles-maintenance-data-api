@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select, and_
 from typing import Annotated
-from src.dependencies import SessionDep
+from src.database import AsyncSessionDep
 from src.models import Make, Model, ModelTypeEnum
 from src.schemas import ModelRead
 
@@ -12,9 +12,9 @@ router = APIRouter(
 
 
 @router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of models')
-def get_models(
+async def get_models(
         make_id: Annotated[int, Query(gt=0, alias='make-id')],
-        session: SessionDep,
+        async_session: AsyncSessionDep,
         model_type: Annotated[ModelTypeEnum | None, Query(alias='model-type')] = None,
         query: str | None = None
 ) -> list[ModelRead]:
@@ -27,33 +27,33 @@ def get_models(
     If the query parameter is specified, only those vehicle models whose names include this string
     will be returned (string case is irrelevant).
     """
-    make = session.get(Make, make_id)
+    make = await async_session.get(Make, make_id)
     if not make:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vehicle make not found.')
     if model_type:
         if query:
-            models = session.execute(
+            result = await async_session.execute(
                 select(Model)
                 .where(and_(Model.make_id == make.id, Model.type == model_type, Model.name.ilike(f'%{query}%')))
                 .order_by(Model.name)
-            ).scalars()
+            )
         else:
-            models = session.execute(
+            result = await async_session.execute(
                 select(Model)
                 .where(and_(Model.make_id == make.id, Model.type == model_type))
                 .order_by(Model.name)
-            ).scalars()
+            )
     else:
         if query:
-            models = session.execute(
+            result = await async_session.execute(
                 select(Model)
                 .where(and_(Model.make_id == make.id, Model.name.ilike(f'%{query}%')))
                 .order_by(Model.name)
-            ).scalars()
+            )
         else:
-            models = session.execute(
+            result = await async_session.execute(
                 select(Model)
                 .where(Model.make_id == make.id)
                 .order_by(Model.name)
-            ).scalars()
-    return models
+            )
+    return result.scalars()
