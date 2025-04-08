@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Path
 from fastapi.responses import Response
 from sqlalchemy import select
 from typing import Annotated, Any
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.exceptions import ServiceNotFoundException
 from src.models import Service
 from src.schemas import ServiceRead, ServiceCreate, ServiceUpdate

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select
 from typing import Annotated
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.models import Model, Range
 from src.schemas import RangeRead
 

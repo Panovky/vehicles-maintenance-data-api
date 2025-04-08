@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Path, Query
 from fastapi.responses import Response
 from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.exceptions import (
     UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, UserLoginIsNotUniqueException
 )

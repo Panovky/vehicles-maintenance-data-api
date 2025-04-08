@@ -2,7 +2,7 @@ import time
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, and_, exists
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.models import Make, Model, Range, Generation, Configuration
 from src.schemas import ScrapeResponse
 from src.services.scrape import scrape_makes, scrape_models, scrape_ranges_and_generations, scrape_configurations,\

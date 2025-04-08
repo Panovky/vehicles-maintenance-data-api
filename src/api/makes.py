@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from sqlalchemy import select
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.models import Make
 from src.schemas import MakeRead
 

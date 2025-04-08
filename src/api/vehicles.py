@@ -2,7 +2,7 @@ from fastapi import APIRouter, Path, status
 from fastapi.responses import Response
 from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
-from src.database import AsyncSessionDep
+from src.dependencies import AsyncSessionDep
 from src.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
 from src.models import Vehicle
 from src.schemas import VehicleRead, VehicleCreate, VehicleUpdate
