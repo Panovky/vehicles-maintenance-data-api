@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import Integer, String, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import Base
+from . import Base
 
 
 class VehicleColorEnum(enum.Enum):

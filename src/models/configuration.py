@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, Float, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import Base
+from . import Base
 
 
 class EngineTypeEnum(enum.Enum):

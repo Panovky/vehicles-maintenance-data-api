@@ -2,7 +2,7 @@ import enum
 from datetime import date
 from sqlalchemy import Date, String, CHAR, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import Base
+from . import Base
 
 
 class UserRoleEnum(enum.Enum):
