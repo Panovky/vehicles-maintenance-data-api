@@ -8,15 +8,15 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-from src.utils import base_model
-from src.configurations import model
-from src.generations import model
-from src.makes import model
-from src.models import model
-from src.ranges import model
-from src.services import model
-from src.users import model
-from src.vehicles import model
+from src.utils.base_model import Base
+from src.configurations.model import Configuration
+from src.generations.model import Generation
+from src.makes.model import Make
+from src.models.model import Model
+from src.ranges.model import Range
+from src.services.model import Service
+from src.users.model import User
+from src.vehicles.model import Vehicle
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -31,7 +31,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = src.models.Base.metadata
+target_metadata = Base.metadata
 
 database_url = os.getenv('DATABASE_URL')
 config.set_main_option('sqlalchemy.url', database_url)
