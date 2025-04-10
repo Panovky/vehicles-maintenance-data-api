@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Annotated
-from src.entities import ModelTypeEnum
+from src.models.model import ModelTypeEnum
 
 
 class MakeScrape(BaseModel):
