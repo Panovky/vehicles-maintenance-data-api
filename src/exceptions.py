@@ -1,6 +1,14 @@
 from fastapi import HTTPException, status
 
 
+class MakeNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Марка автомобиля с указанным id не найдена.'
+        )
+
+
 class VehicleNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
