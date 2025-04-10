@@ -1,4 +1,4 @@
-from src.exceptions import MakeNotFoundException
+from src.utils.exceptions import MakeNotFoundException
 from .repository import MakesRepository
 from .schemas import MakeRead
 
