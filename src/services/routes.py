@@ -4,8 +4,8 @@ from sqlalchemy import select
 from typing import Annotated, Any
 from src.dependencies import AsyncSessionDep
 from src.utils.exceptions import ServiceNotFoundException
-from src.entities import Service
-from src.schemas import ServiceRead, ServiceCreate, ServiceUpdate
+from .model import Service
+from .schemas import ServiceRead, ServiceCreate, ServiceUpdate
 
 router = APIRouter(
     prefix='/services',
