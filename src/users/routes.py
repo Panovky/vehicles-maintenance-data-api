@@ -6,9 +6,9 @@ from src.dependencies import AsyncSessionDep
 from src.utils.exceptions import (
     UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, UserLoginIsNotUniqueException
 )
-from src.entities import User, UserRoleEnum
-from src.schemas import UserRead, UserCreate, UserUpdate
-from src.services.users import hash_password
+from .model import User, UserRoleEnum
+from .schemas import UserRead, UserCreate, UserUpdate
+from .service import hash_password
 
 router = APIRouter(
     prefix='/users',
