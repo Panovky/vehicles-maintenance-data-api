@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Annotated
-from src.entities import EngineTypeEnum, TransmissionEnum, DriveEnum
+from .model import EngineTypeEnum, TransmissionEnum, DriveEnum
 
 
 class ConfigurationRead(BaseModel):
