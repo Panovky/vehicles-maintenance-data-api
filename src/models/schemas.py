@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Annotated
-from src.entities import ModelTypeEnum
+from .model import ModelTypeEnum
 
 
 class ModelRead(BaseModel):
