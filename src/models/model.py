@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import Base
+from src.entities import Base
 
 
 class ModelTypeEnum(enum.Enum):

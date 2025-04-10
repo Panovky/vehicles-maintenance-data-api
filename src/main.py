@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes import users, services, makes, models, ranges, generations, configurations, scrape, vehicles
+from src.makes.routes import router as makes_router
 
 app = FastAPI()
 
@@ -12,12 +12,5 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-app.include_router(users.router)
-app.include_router(services.router)
-app.include_router(makes.router)
-app.include_router(models.router)
-app.include_router(ranges.router)
-app.include_router(generations.router)
-app.include_router(configurations.router)
-app.include_router(scrape.router)
-app.include_router(vehicles.router)
+
+app.include_router(makes_router)
