@@ -1,5 +1,5 @@
 from typing import TypeVar, Generic
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from .abstract import AbstractRepository
 
@@ -17,7 +17,7 @@ class SQLAlchemyRepository(AbstractRepository, Generic[T]):
         return list(res.scalars())
 
     async def get_by_id(self, _id: int) -> T | None:
-        res = self.async_session.get(self.model, _id)
+        res = await self.async_session.get(self.model, _id)
         return res
 
     async def create(self, data: dict) -> T:
@@ -50,6 +50,18 @@ class SQLAlchemyRepository(AbstractRepository, Generic[T]):
 
     async def filter_by(self, **filters) -> list[T]:
         stmt = select(self.model).filter_by(**filters)
+        res = await self.async_session.execute(stmt)
+        return list(res.scalars())
+
+    async def starts_with(self, atr_name: str, prefix: str, case_sensitive: bool = False) -> list[T]:
+        atr = getattr(self.model, atr_name)
+        stmt = select(self.model)
+
+        if case_sensitive:
+            stmt = stmt.where(atr.startswith(prefix))
+        else:
+            stmt = stmt.where(func.lower(atr).startswith(prefix.lower()))
+
         res = await self.async_session.execute(stmt)
         return list(res.scalars())
 
