@@ -4,8 +4,8 @@ from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
 from src.dependencies import AsyncSessionDep
 from src.utils.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
-from src.entities import Vehicle
-from src.schemas import VehicleRead, VehicleCreate, VehicleUpdate
+from .model import Vehicle
+from .schemas import VehicleRead, VehicleCreate, VehicleUpdate
 
 router = APIRouter(
     prefix='/vehicles',
