@@ -2,8 +2,9 @@ from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select
 from typing import Annotated
 from src.dependencies import AsyncSessionDep
-from src.entities import Model, Range
-from src.schemas import RangeRead
+from src.models.model import Model
+from .model import Range
+from .schemas import RangeRead
 
 router = APIRouter(
     prefix='/ranges',

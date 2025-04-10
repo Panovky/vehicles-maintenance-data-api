@@ -10,6 +10,8 @@ async def get_async_session() -> AsyncSession:
     async with async_session_maker() as async_session:
         yield async_session
 
+AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+
 
 def get_makes_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> MakesRepository:
     return MakesRepository(async_session)

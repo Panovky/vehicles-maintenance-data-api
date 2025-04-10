@@ -3,9 +3,13 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, and_, exists
 from src.dependencies import AsyncSessionDep
-from src.entities import Make, Model, Range, Generation, Configuration
-from src.schemas import ScrapeResponse
-from src.services.scrape import scrape_makes, scrape_models, scrape_ranges_and_generations, scrape_configurations,\
+from src.makes.model import Make
+from src.models.model import Model
+from src.ranges.model import Range
+from src.generations.model import Generation
+from src.configurations.model import Configuration
+from .schemas import ScrapeResponse
+from .service import scrape_makes, scrape_models, scrape_ranges_and_generations, scrape_configurations,\
     UnexpectedDromResponseError, get_unhandled_error_info
 
 router = APIRouter(

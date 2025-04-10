@@ -2,8 +2,9 @@ from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select
 from typing import Annotated
 from src.dependencies import AsyncSessionDep
-from src.entities import Generation, Configuration
-from src.schemas import ConfigurationRead
+from src.generations.model import Generation
+from .model import Configuration
+from .schemas import ConfigurationRead
 
 router = APIRouter(
     prefix='/configurations',

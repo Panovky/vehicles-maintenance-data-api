@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-from src.entities import ModelTypeEnum
-from src.entities import EngineTypeEnum, TransmissionEnum, DriveEnum
-from src.schemas import MakeScrape, ModelScrape, RangeScrape, GenerationScrape, ConfigurationScrape
+from src.models.model import ModelTypeEnum
+from src.configurations.model import EngineTypeEnum, TransmissionEnum, DriveEnum
+from .schemas import MakeScrape, ModelScrape, RangeScrape, GenerationScrape, ConfigurationScrape
 
 
 class UnexpectedDromResponseError(Exception):

@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Annotated
-from src.entities import UserRoleEnum
+from .model import UserRoleEnum
 
 
 def validate_birthday(birthday: date) -> date:

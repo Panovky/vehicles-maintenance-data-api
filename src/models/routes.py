@@ -2,8 +2,9 @@ from fastapi import APIRouter, Query, status, HTTPException
 from sqlalchemy import select, and_
 from typing import Annotated
 from src.dependencies import AsyncSessionDep
-from src.entities import Make, Model, ModelTypeEnum
-from src.schemas import ModelRead
+from src.makes.model import Make
+from .model import Model, ModelTypeEnum
+from .schemas import ModelRead
 
 router = APIRouter(
     prefix='/models',

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.repositories import SQLAlchemyRepository
+from src.utils.sqlalchemy_repository import SQLAlchemyRepository
 from .model import Make
 
 

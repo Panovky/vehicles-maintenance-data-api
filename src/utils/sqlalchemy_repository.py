@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.utils.abstract import AbstractRepository
+from .abstract_repository import AbstractRepository
 
 T = TypeVar('T')
 
