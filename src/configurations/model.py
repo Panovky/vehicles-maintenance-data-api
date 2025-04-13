@@ -2,6 +2,7 @@ import enum
 from sqlalchemy import ForeignKey, Integer, Float, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.utils.base_model import Base
+from src.vehicles.model import Vehicle
 
 
 class EngineTypeEnum(enum.Enum):

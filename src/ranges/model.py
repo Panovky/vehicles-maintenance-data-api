@@ -1,6 +1,7 @@
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.utils.base_model import Base
+from src.generations.model import Generation
 
 
 class Range(Base):
