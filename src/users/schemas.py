@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Annotated
-from .model import UserRoleEnum
 
 
 def validate_birthday(birthday: date) -> date:
@@ -20,11 +19,9 @@ class UserRead(BaseModel):
     last_name: Annotated[str, Field(example="Филатов")]
     first_name: Annotated[str, Field(example="Никита")]
     patronymic: Annotated[str | None, Field(example="Андреевич")]
-    birthday: Annotated[date, Field(example="1984-09-05")]
-    phone: Annotated[str, Field(example="+7 (950) 732-13-83")]
-    email: Annotated[str, Field(example="nikita.filatov@yandex.ru")]
-    role: UserRoleEnum
-    login: Annotated[str, Field(example="zz_filin_zz")]
+    birthday: Annotated[date | None, Field(example="1984-09-05")]
+    phone: Annotated[str | None, Field(example="+7 (950) 732-13-83")]
+    email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
 
 
 class UserCreate(BaseModel):
@@ -32,11 +29,9 @@ class UserCreate(BaseModel):
     last_name: Annotated[str, Field(max_length=100, example="Филатов")]
     first_name: Annotated[str, Field(max_length=50, example="Никита")]
     patronymic: Annotated[str | None, Field(max_length=40, default=None, example="Андреевич")]
-    birthday: Annotated[date, Field(example="1984-09-05")]
-    phone: Annotated[str, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', example="+7 (950) 732-13-83")]
+    birthday: Annotated[date | None, Field(example="1984-09-05")]
+    phone: Annotated[str | None, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
-    role: UserRoleEnum
-    login: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="zz_filin_zz")]
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
 
     _validate_birthday = field_validator('birthday')(validate_birthday)
@@ -51,8 +46,6 @@ class UserUpdate(BaseModel):
     phone: Annotated[str | None, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', default=None,
                                        example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr | None, Field(default=None, example="nikita.filatov@yandex.ru")]
-    role: Annotated[UserRoleEnum | None, Field(default=None)]
-    login: Annotated[str | None, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', default=None, example="zz_filin_zz")]
     password: Annotated[str | None, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', default=None, example="2a_B4-cJ_q5")]
 
     _validate_birthday = field_validator('birthday')(validate_birthday)
