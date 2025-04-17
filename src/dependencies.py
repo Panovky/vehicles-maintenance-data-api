@@ -12,6 +12,7 @@ async def get_async_session() -> AsyncSession:
     async with async_session_maker() as async_session:
         yield async_session
 
+
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
@@ -31,6 +32,9 @@ def get_auth_service(
     return AuthService(users_repository, user_roles_repository)
 
 
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+
+
 def get_makes_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> MakesRepository:
     return MakesRepository(async_session)
 
@@ -39,5 +43,4 @@ def get_makes_service(makes_repository: Annotated[MakesRepository, Depends(get_m
     return MakesService(makes_repository)
 
 
-AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 MakesServiceDep = Annotated[MakesService, Depends(get_makes_service)]
