@@ -1,5 +1,4 @@
 from fastapi import APIRouter, status
-from fastapi.security import HTTPBearer
 from src.dependencies import AuthServiceDep, CurrentUserByAccessTokenDep
 from src.users.schemas import UserRead
 from .schemas import UserRegister, UserLogin, AccessTokenRead
@@ -8,8 +7,6 @@ router = APIRouter(
     prefix='/auth',
     tags=['auth']
 )
-
-http_bearer = HTTPBearer()
 
 
 @router.post(
