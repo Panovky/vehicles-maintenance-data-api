@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from typing import Annotated
 
 
@@ -13,6 +13,8 @@ def validate_birthday(birthday: date) -> date:
 
 class UserRead(BaseModel):
     """The model representing the user data to be returned to the client."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: Annotated[int, Field(example=1)]
     created_at: datetime
     updated_at: datetime
@@ -33,6 +35,7 @@ class UserCreate(BaseModel):
     phone: Annotated[str | None, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
+    role_id: Annotated[int, Field(example=1)]
 
     _validate_birthday = field_validator('birthday')(validate_birthday)
 

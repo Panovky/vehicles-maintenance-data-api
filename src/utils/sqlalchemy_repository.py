@@ -1,6 +1,7 @@
 from typing import TypeVar, Generic
-from sqlalchemy import select, func
+from sqlalchemy import select, func, exists
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import and_
 from .abstract_repository import AbstractRepository
 
 T = TypeVar('T')
@@ -66,6 +67,7 @@ class SQLAlchemyRepository(AbstractRepository, Generic[T]):
         return list(res.scalars())
 
     async def exists(self, **filters) -> bool:
-        stmt = select(self.model).filter_by(**filters)
-        res = await self.async_session.exists(stmt)
+        conditions = [getattr(self.model, key) == value for key, value in filters.items()]
+        stmt = select(exists().where(and_(*conditions)))
+        res = await self.async_session.execute(stmt)
         return res.scalar()

@@ -2,7 +2,7 @@ from fastapi import Depends
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import async_session_maker
-from src.users.repository import UsersRepository
+from src.users.repository import UsersRepository, UserRolesRepository
 from src.auth.service import AuthService
 from src.makes.repository import MakesRepository
 from src.makes.service import MakesService
@@ -19,8 +19,16 @@ def get_users_repository(async_session: Annotated[AsyncSession, Depends(get_asyn
     return UsersRepository(async_session)
 
 
-def get_auth_service(users_repository: Annotated[UsersRepository, Depends(get_users_repository)]) -> AuthService:
-    return AuthService(users_repository)
+def get_user_roles_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) \
+        -> UserRolesRepository:
+    return UserRolesRepository(async_session)
+
+
+def get_auth_service(
+        users_repository: Annotated[UsersRepository, Depends(get_users_repository)],
+        user_roles_repository: Annotated[UserRolesRepository, Depends(get_user_roles_repository)]
+) -> AuthService:
+    return AuthService(users_repository, user_roles_repository)
 
 
 def get_makes_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> MakesRepository:
