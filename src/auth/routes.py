@@ -15,9 +15,9 @@ router = APIRouter(
     responses={201: {'description': 'User successfully registered'}, 409: {'description': 'User data is not unique'}},
     summary='Register a user'
 )
-async def register(data: UserRegister, auth_service: AuthServiceDep) -> UserRead:
-    user = await auth_service.register(data)
-    return user
+async def register(data: UserRegister, auth_service: AuthServiceDep) -> AccessTokenRead:
+    access_token = await auth_service.register(data)
+    return access_token
 
 
 @router.post(

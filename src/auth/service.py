@@ -7,10 +7,9 @@ from src.exceptions import (
     UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException,
     InvalidAccessTokenException
 )
-from src.users.model import User
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
-from .schemas import UserRegister, UserLogin, AccessTokenRead
+from .schemas import UserRegister, UserLogin, AccessTokenCreate, AccessTokenRead
 
 
 class AuthService:
@@ -60,7 +59,12 @@ class AuthService:
         decoded = jwt.decode(token, public_key, algorithms=[algorithm])
         return decoded
 
-    async def register(self, data: UserRegister) -> UserRead:
+    def get_access_token(self, data: AccessTokenCreate):
+        payload = {'sub': str(data.id), 'email': data.email}
+        access_token = self.encode_jwt(payload=payload)
+        return AccessTokenRead(access_token=access_token, token_type='Bearer')
+
+    async def register(self, data: UserRegister) -> AccessTokenRead:
         if await self.users_repository.exists(phone=data.phone):
             raise UserPhoneIsNotUniqueException()
 
@@ -74,16 +78,14 @@ class AuthService:
 
         await self.user_roles_repository.assign_role(user.id, data.role_id)
 
-        return UserRead.model_validate(user)
+        return self.get_access_token(AccessTokenCreate.model_validate(user))
 
     async def login(self, data: UserLogin) -> AccessTokenRead:
         user = await self.get_authenticated_user(data)
         if not user:
             raise
 
-        payload = {'sub': str(user.id), 'email': user.email}
-        access_token = self.encode_jwt(payload=payload)
-        return AccessTokenRead(access_token=access_token, token_type='Bearer')
+        return self.get_access_token(AccessTokenCreate.model_validate(user))
 
     async def get_current_user_by_access_token(self, access_token: str) -> UserRead:
         try:

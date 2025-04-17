@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Annotated
 
 
@@ -19,6 +19,14 @@ class UserLogin(BaseModel):
     """The model representing the data needed to log in the user."""
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
+
+
+class AccessTokenCreate(BaseModel):
+    """The model representing the data needed to generate access token."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Annotated[int, Field(example=1)]
+    email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
 
 
 class AccessTokenRead(BaseModel):
