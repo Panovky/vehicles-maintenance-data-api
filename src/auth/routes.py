@@ -1,9 +1,8 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status
 from fastapi.security import HTTPBearer
-from src.dependencies import AuthServiceDep
+from src.dependencies import AuthServiceDep, CurrentUserByAccessTokenDep
 from src.users.schemas import UserRead
 from .schemas import UserRegister, UserLogin, AccessTokenRead
-from typing import Annotated
 
 router = APIRouter(
     prefix='/auth',
@@ -46,10 +45,9 @@ async def refresh():
     '/me',
     responses={
         200: {'description': 'User successfully received'},
-        401: {'description': "Access token are invalid"}
+        401: {'description': 'Access token are invalid'}
     },
     summary='Get current user by access token'
 )
-async def me(auth_header: Annotated[HTTPBearer, Depends(http_bearer)], auth_service: AuthServiceDep) -> UserRead:
-    user = await auth_service.get_current_user_by_access_token(auth_header.credentials)
+async def me(user: CurrentUserByAccessTokenDep) -> UserRead:
     return user

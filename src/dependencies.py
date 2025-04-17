@@ -1,7 +1,9 @@
 from fastapi import Depends
+from fastapi.security import HTTPBearer
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import async_session_maker
+from src.users.schemas import UserRead
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.auth.service import AuthService
 from src.makes.repository import MakesRepository
@@ -33,6 +35,19 @@ def get_auth_service(
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+
+
+def get_auth_header() -> HTTPBearer:
+    return HTTPBearer()
+
+
+async def get_current_user_by_access_token(
+    auth_header: Annotated[str, Depends(get_auth_header())], auth_service: AuthServiceDep
+) -> UserRead:
+    return await auth_service.get_current_user_by_access_token(auth_header.credentials)
+
+
+CurrentUserByAccessTokenDep = Annotated[UserRead, Depends(get_current_user_by_access_token)]
 
 
 def get_makes_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> MakesRepository:
