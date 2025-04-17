@@ -7,13 +7,6 @@ class UsersRepository(SQLAlchemyRepository):
     def __init__(self, async_session: AsyncSession):
         super().__init__(async_session, User)
 
-    async def create(self, data: dict) -> User:
-        instance = self.model(**data)
-        self.async_session.add(instance)
-        await self.async_session.commit()
-        await self.async_session.refresh(instance)
-        return instance
-
 
 class UserRolesRepository(SQLAlchemyRepository):
     def __init__(self, async_session: AsyncSession):
