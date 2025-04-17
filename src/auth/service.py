@@ -96,13 +96,17 @@ class AuthService:
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
 
-    async def get_current_user_by_access_token(self, access_token: str) -> UserRead:
+    def refresh(self, user: UserRead) -> TokenRead:
+        access_token = self.get_access_token(user.id, user.email)
+        return TokenRead(access_token=access_token)
+
+    async def get_current_user_by_token(self, token: str, token_type: str) -> UserRead:
         try:
-            payload = self.decode_jwt(token=access_token)
+            payload = self.decode_jwt(token=token)
         except InvalidTokenError:
             raise InvalidAccessTokenException()
 
-        if payload.get('type') != 'access':
+        if payload.get('type') != token_type:
             raise InvalidAccessTokenException()
 
         email = payload.get('email')

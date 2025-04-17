@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status
-from src.dependencies import AuthServiceDep, CurrentUserByAccessTokenDep
+from src.dependencies import AuthServiceDep, CurrentUserByAccessTokenDep, CurrentUserByRefreshTokenDep
 from src.users.schemas import UserRead
 from .schemas import UserRegister, UserLogin, TokenRead
 
@@ -33,9 +33,14 @@ async def login(data: UserLogin, auth_service: AuthServiceDep) -> TokenRead:
     return access_token
 
 
-@router.post('/refresh')
-async def refresh():
-    pass
+@router.post(
+    '/refresh',
+    response_model=TokenRead,
+    response_model_exclude_none=True,
+    summary='Get access token by refresh token'
+)
+async def refresh(user: CurrentUserByRefreshTokenDep, auth_service: AuthServiceDep):
+    return auth_service.refresh(user)
 
 
 @router.get(

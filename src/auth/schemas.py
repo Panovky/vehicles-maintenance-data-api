@@ -24,5 +24,5 @@ class UserLogin(BaseModel):
 class TokenRead(BaseModel):
     """The model representing the token data to be returned to the client."""
     access_token: str
-    refresh_token: str
+    refresh_token: str | None = None
     token_type: str = 'Bearer'
