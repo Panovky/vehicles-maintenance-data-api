@@ -9,7 +9,7 @@ from src.exceptions import (
 )
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
-from .schemas import UserRegister, UserLogin, AccessTokenCreate, AccessTokenRead
+from .schemas import UserRegister, UserLogin, TokenRead
 
 
 class AuthService:
@@ -35,17 +35,13 @@ class AuthService:
     @staticmethod
     def encode_jwt(
             payload: dict,
+            token_expire_minutes: int,
             private_key: str = settings.jwt_auth.private_key_path.read_text(),
-            algorithm: str = settings.jwt_auth.algorithm,
-            access_token_expire_minutes: int = settings.jwt_auth.access_token_expire_minutes,
-            access_token_expire_timedelta: timedelta | None = None
+            algorithm: str = settings.jwt_auth.algorithm
     ):
         payload_to_encode = payload.copy()
         now = datetime.utcnow()
-        if access_token_expire_timedelta:
-            expire = now + access_token_expire_timedelta
-        else:
-            expire = now + timedelta(minutes=access_token_expire_minutes)
+        expire = now + timedelta(minutes=token_expire_minutes)
         payload_to_encode.update(iat=now, exp=expire)
         encoded = jwt.encode(payload_to_encode, private_key, algorithm=algorithm)
         return encoded
@@ -59,12 +55,19 @@ class AuthService:
         decoded = jwt.decode(token, public_key, algorithms=[algorithm])
         return decoded
 
-    def get_access_token(self, data: AccessTokenCreate):
-        payload = {'sub': str(data.id), 'email': data.email}
-        access_token = self.encode_jwt(payload=payload)
-        return AccessTokenRead(access_token=access_token, token_type='Bearer')
+    def get_access_token(self, _id: int, email: str) -> str:
+        return self.encode_jwt(
+            payload={'sub': str(_id), 'email': email, 'type': 'access'},
+            token_expire_minutes=settings.jwt_auth.access_token_expire_minutes
+        )
 
-    async def register(self, data: UserRegister) -> AccessTokenRead:
+    def get_refresh_token(self, _id: int, email: str) -> str:
+        return self.encode_jwt(
+            payload={'sub': str(_id), 'email': email, 'type': 'refresh'},
+            token_expire_minutes=settings.jwt_auth.refresh_token_expire_days * 24 * 60
+        )
+
+    async def register(self, data: UserRegister) -> TokenRead:
         if await self.users_repository.exists(phone=data.phone):
             raise UserPhoneIsNotUniqueException()
 
@@ -78,14 +81,20 @@ class AuthService:
 
         await self.user_roles_repository.assign_role(user.id, data.role_id)
 
-        return self.get_access_token(AccessTokenCreate.model_validate(user))
+        return TokenRead(
+            access_token=self.get_access_token(user.id, user.email),
+            refresh_token=self.get_refresh_token(user.id, user.email)
+        )
 
-    async def login(self, data: UserLogin) -> AccessTokenRead:
+    async def login(self, data: UserLogin) -> TokenRead:
         user = await self.get_authenticated_user(data)
         if not user:
             raise
 
-        return self.get_access_token(AccessTokenCreate.model_validate(user))
+        return TokenRead(
+            access_token=self.get_access_token(user.id, user.email),
+            refresh_token=self.get_refresh_token(user.id, user.email)
+        )
 
     async def get_current_user_by_access_token(self, access_token: str) -> UserRead:
         try:
