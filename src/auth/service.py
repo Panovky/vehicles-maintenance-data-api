@@ -102,6 +102,9 @@ class AuthService:
         except InvalidTokenError:
             raise InvalidAccessTokenException()
 
+        if payload.get('type') != 'access':
+            raise InvalidAccessTokenException()
+
         email = payload.get('email')
         user = await self.users_repository.get_by_email(email)
 
