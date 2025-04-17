@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.utils.sqlalchemy_repository import SQLAlchemyRepository
 from .model import User, UserRole
@@ -6,6 +7,11 @@ from .model import User, UserRole
 class UsersRepository(SQLAlchemyRepository):
     def __init__(self, async_session: AsyncSession):
         super().__init__(async_session, User)
+
+    async def get_by_email(self, email: str) -> User | None:
+        stmt = select(User).where(User.email == email)
+        user = await self.async_session.execute(stmt)
+        return user.scalar()
 
 
 class UserRolesRepository(SQLAlchemyRepository):
