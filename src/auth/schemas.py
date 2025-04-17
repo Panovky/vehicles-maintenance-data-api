@@ -21,7 +21,7 @@ class UserLogin(BaseModel):
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
 
 
-class TokenRead(BaseModel):
+class AccessTokenRead(BaseModel):
     """The model representing the token data to be returned to the client."""
     access_token: str
     token_type: str
