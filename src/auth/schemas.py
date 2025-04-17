@@ -4,7 +4,7 @@ from typing import Annotated
 
 
 class UserRegister(BaseModel):
-    """The model representing the user data needed to register the user."""
+    """The model representing the data needed to register the user."""
     last_name: Annotated[str, Field(max_length=100, example="Филатов")]
     first_name: Annotated[str, Field(max_length=50, example="Никита")]
     patronymic: Annotated[str | None, Field(max_length=40, default=None, example="Андреевич")]
@@ -16,7 +16,7 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    """The model representing the user data needed to log in the user."""
+    """The model representing the data needed to log in the user."""
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
 
