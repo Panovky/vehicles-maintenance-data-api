@@ -1,15 +1,15 @@
 import bcrypt
 import jwt
-from jwt.exceptions import InvalidTokenError
 from datetime import timedelta, datetime
+from jwt.exceptions import InvalidTokenError
 from src.config import settings
-from src.users.model import User
-from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.schemas import UserRead
 from src.exceptions import (
     UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException,
     InvalidAccessTokenException
 )
+from src.users.model import User
+from src.users.repository import UsersRepository, UserRolesRepository
+from src.users.schemas import UserRead
 from .schemas import UserRegister, UserLogin, AccessTokenRead
 
 
@@ -27,7 +27,7 @@ class AuthService:
     def verify_password(password: str, password_hash: str) -> bool:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
 
-    async def get_authenticated_user(self, data: UserLogin) -> User | None:
+    async def get_authenticated_user(self, data: UserLogin) -> UserRead | None:
         user = await self.users_repository.get_by_email(data.email)
         if not user or not self.verify_password(data.password, user.password_hash):
             raise InvalidUserCredentialsException()
