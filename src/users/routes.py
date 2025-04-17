@@ -3,9 +3,7 @@ from fastapi.responses import Response
 from sqlalchemy import select, exists
 from typing import Annotated
 from src.dependencies import AsyncSessionDep
-from src.utils.exceptions import (
-    UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException
-)
+from src.exceptions import UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException
 from .model import User
 from .schemas import UserRead, UserUpdate
 

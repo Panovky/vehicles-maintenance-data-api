@@ -1,4 +1,5 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from starlette import status
 
 
 class MakeNotFoundException(HTTPException):

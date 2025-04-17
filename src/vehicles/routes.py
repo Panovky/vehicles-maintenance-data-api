@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from sqlalchemy import select, exists, and_
 from typing import Any, Annotated
 from src.dependencies import AsyncSessionDep
-from src.utils.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
+from src.exceptions import VehicleNotFoundException, VINIsNotUniqueException, RegistrationNumberIsNotUniqueException
 from .model import Vehicle
 from .schemas import VehicleRead, VehicleCreate, VehicleUpdate
 

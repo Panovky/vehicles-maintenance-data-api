@@ -3,7 +3,7 @@ import jwt
 from src.config import settings
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserCreate, UserRead
-from src.utils.exceptions import UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException
+from src.exceptions import UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException
 
 
 class AuthService:
