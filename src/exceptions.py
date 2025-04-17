@@ -10,6 +10,14 @@ class InvalidUserCredentialsException(HTTPException):
         )
 
 
+class InvalidAccessTokenException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Неверный токен доступа.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(

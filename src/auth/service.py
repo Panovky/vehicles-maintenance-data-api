@@ -1,11 +1,15 @@
 import bcrypt
 import jwt
+from jwt.exceptions import InvalidTokenError
 from datetime import timedelta, datetime
 from src.config import settings
 from src.users.model import User
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
-from src.exceptions import UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException
+from src.exceptions import (
+    UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException,
+    InvalidAccessTokenException
+)
 from .schemas import UserRegister, UserLogin, AccessTokenRead
 
 
@@ -49,11 +53,11 @@ class AuthService:
 
     @staticmethod
     def decode_jwt(
-            jwt_token: str,
+            token: str,
             public_key: str = settings.jwt_auth.public_key_path.read_text(),
             algorithm: str = settings.jwt_auth.algorithm
     ):
-        decoded = jwt.decode(jwt_token, public_key, algorithms=[algorithm])
+        decoded = jwt.decode(token, public_key, algorithms=[algorithm])
         return decoded
 
     async def register(self, data: UserRegister) -> UserRead:
@@ -77,6 +81,19 @@ class AuthService:
         if not user:
             raise
 
-        payload = {'sub': user.id, 'email': user.email}
+        payload = {'sub': str(user.id), 'email': user.email}
         access_token = self.encode_jwt(payload=payload)
         return AccessTokenRead(access_token=access_token, token_type='Bearer')
+
+    async def get_current_user_by_access_token(self, access_token: str) -> UserRead:
+        try:
+            payload = self.decode_jwt(token=access_token)
+        except InvalidTokenError:
+            raise InvalidAccessTokenException()
+
+        email = payload.get('email')
+        user = await self.users_repository.get_by_email(email)
+
+        if not user:
+            raise InvalidAccessTokenException()
+        return UserRead.model_validate(user)
