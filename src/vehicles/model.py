@@ -40,7 +40,6 @@ class Vehicle(Base):
     vin: Mapped[str] = mapped_column(String(17), nullable=False, unique=True)
     registration_number: Mapped[str] = mapped_column(String(9), nullable=False, unique=True)
 
-    user = relationship('User', back_populates='vehicles')
     make = relationship('Make', back_populates='vehicles')
     model = relationship('Model', back_populates='vehicles')
     range = relationship('Range', back_populates='vehicles')

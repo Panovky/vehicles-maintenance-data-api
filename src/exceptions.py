@@ -1,4 +1,21 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from starlette import status
+
+
+class InvalidUserCredentialsException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Неверный e-mail или пароль.'
+        )
+
+
+class InvalidAccessTokenException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Неверный токен доступа.'
+        )
 
 
 class MakeNotFoundException(HTTPException):
@@ -37,31 +54,23 @@ class UserNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail='User not found.'
+            detail='Пользователь с данным id не найден.'
         )
 
 
 class UserPhoneIsNotUniqueException(HTTPException):
-    def __init__(self, role):
+    def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f'User with the same phone number already exists among users with role «{role}».'
+            detail=f'Пользователь с таким номером телефона уже существует.'
         )
 
 
 class UserEmailIsNotUniqueException(HTTPException):
-    def __init__(self, role):
-        super().__init__(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f'User with the same email address already exists among users with role «{role}».'
-        )
-
-
-class UserLoginIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail='User with the same login already exists.'
+            detail=f'Пользователь с таким e-mail уже существует.'
         )
 
 

@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from sqlalchemy import select
 from typing import Annotated, Any
 from src.dependencies import AsyncSessionDep
-from src.utils.exceptions import ServiceNotFoundException
+from src.exceptions import ServiceNotFoundException
 from .model import Service
 from .schemas import ServiceRead, ServiceCreate, ServiceUpdate
 

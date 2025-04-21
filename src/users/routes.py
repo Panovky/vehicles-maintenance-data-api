@@ -1,14 +1,11 @@
-from fastapi import APIRouter, status, Path, Query
+from fastapi import APIRouter, status, Path
 from fastapi.responses import Response
-from sqlalchemy import select, exists, and_
-from typing import Any, Annotated
+from sqlalchemy import select, exists
+from typing import Annotated
 from src.dependencies import AsyncSessionDep
-from src.utils.exceptions import (
-    UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, UserLoginIsNotUniqueException
-)
-from .model import User, UserRoleEnum
-from .schemas import UserRead, UserCreate, UserUpdate
-from .service import hash_password
+from src.exceptions import UserNotFoundException, UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException
+from .model import User
+from .schemas import UserRead, UserUpdate
 
 router = APIRouter(
     prefix='/users',
@@ -47,26 +44,16 @@ async def update_user(
         raise UserNotFoundException()
 
     if user_data.phone:
-        stmt = select(exists().where(and_(
-            User.role == user_data.role, User.phone == user_data.phone, User.id != user_id
-        )))
+        stmt = select(exists().where(User.phone == user_data.phone))
         result = await async_session.execute(stmt)
         if result.scalar():
             raise UserPhoneIsNotUniqueException(user_data.role)
 
     if user_data.email:
-        stmt = select(exists().where(and_(
-            User.role == user_data.role, User.email == user_data.email, User.id != user_id
-        )))
+        stmt = select(exists().where(User.email == user_data.email))
         result = await async_session.execute(stmt)
         if result.scalar():
             raise UserEmailIsNotUniqueException(user_data.role)
-
-    if user_data.login:
-        stmt = select(exists().where(and_(User.login == user_data.login, User.id != user_id)))
-        result = await async_session.execute(stmt)
-        if result.scalar():
-            raise UserLoginIsNotUniqueException()
 
     for key, value in user_data.model_dump(exclude_none=True).items():
         setattr(user, key, value)
@@ -98,52 +85,7 @@ async def delete_user(user_id: Annotated[int, Path(gt=0)], async_session: AsyncS
 @router.get('/', responses={200: {'description': 'Users successfully received'}}, summary='Return a list of users')
 async def get_users(
         async_session: AsyncSessionDep,
-        user_role: Annotated[UserRoleEnum | None, Query(alias='user-role')] = None,
         limit: int = 10, offset: int = 0
 ) -> list[UserRead]:
-    """
-    Return a list of users with the given role of a given length (limit), starting from a given table entry (offset).
-    If no role is specified, a list of users with both roles will be returned.
-    """
-    if user_role:
-        result = await async_session.execute(select(User).where(User.role == user_role).offset(offset).limit(limit))
-    else:
-        result = await async_session.execute(select(User).offset(offset).limit(limit))
+    result = await async_session.execute(select(User).offset(offset).limit(limit))
     return result.scalars()
-
-
-@router.post(
-    '/',
-    status_code=status.HTTP_201_CREATED,
-    response_model=UserRead,
-    responses={
-        201: {'description': 'User successfully created'},
-        409: {'description': 'User data is not unique'}
-    },
-    summary='Create the user'
-)
-async def create_user(user_data: UserCreate, async_session: AsyncSessionDep) -> Any:
-    """Create the user with the given information."""
-
-    stmt = select(exists().where(and_(User.role == user_data.role, User.phone == user_data.phone)))
-    result = await async_session.execute(stmt)
-    if result.scalar():
-        raise UserPhoneIsNotUniqueException(user_data.role)
-
-    stmt = select(exists().where(and_(User.role == user_data.role, User.email == user_data.email)))
-    result = await async_session.execute(stmt)
-    if result.scalar():
-        raise UserEmailIsNotUniqueException(user_data.role)
-
-    stmt = select(exists().where(and_(User.login == user_data.login)))
-    result = await async_session.execute(stmt)
-    if result.scalar():
-        raise UserLoginIsNotUniqueException()
-
-    user_data_dict = {key: value for key, value in user_data.model_dump().items() if key != 'password'}
-    password_hash = hash_password(user_data.password)
-    user = User(**user_data_dict, password_hash=password_hash)
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
-    return user
