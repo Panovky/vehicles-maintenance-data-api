@@ -74,12 +74,12 @@ class AuthService:
         if await self.users_repository.exists(email=data.email):
             raise UserEmailIsNotUniqueException()
 
-        data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role_id'}
+        data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role'}
         password_hash = self.hash_password(data.password)
         data_dict['password_hash'] = password_hash
         user = await self.users_repository.create(data_dict)
 
-        await self.user_roles_repository.assign_role(user.id, data.role_id)
+        await self.user_roles_repository.assign_role(user.id, data.role)
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),
