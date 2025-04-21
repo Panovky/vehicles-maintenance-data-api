@@ -1,7 +1,15 @@
+import enum
 from datetime import date
 from sqlalchemy import Date, String, Integer, CHAR, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from src.utils.base_model import Base
+
+
+class RoleEnum(enum.Enum):
+    owner = 'owner'
+    worker = 'worker'
+    manager = 'manager'
+    admin = 'admin'
 
 
 class User(Base):
@@ -16,15 +24,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(60), nullable=False)
 
 
-class Role(Base):
-    __tablename__ = 'roles'
-
-    name: Mapped[str] = mapped_column(
-        Enum('owner', 'worker', 'manager', 'admin', name='roleenum'), nullable=False, unique=True)
-
-
 class UserRole(Base):
     __tablename__ = 'user_roles'
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
-    role_id: Mapped[int] = mapped_column(Integer, ForeignKey('roles.id'))
+    role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), nullable=False)
