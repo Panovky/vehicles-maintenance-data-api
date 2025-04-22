@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Annotated
+from .model import RoleEnum
 
 
 class UserRead(BaseModel):
@@ -16,6 +17,7 @@ class UserRead(BaseModel):
     birthday: Annotated[date | None, Field(example="1984-09-05")]
     phone: Annotated[str | None, Field(example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
+    roles: list[RoleEnum]
 
 
 class UserUpdate(BaseModel):
