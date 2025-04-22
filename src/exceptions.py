@@ -18,6 +18,30 @@ class InvalidAccessTokenException(HTTPException):
         )
 
 
+class UserPhoneIsNotUniqueException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'Пользователь с таким номером телефона уже существует.'
+        )
+
+
+class UserEmailIsNotUniqueException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'Пользователь с таким e-mail уже существует.'
+        )
+
+
+class UserNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Пользователь с данным id не найден.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
@@ -47,30 +71,6 @@ class RegistrationNumberIsNotUniqueException(HTTPException):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
             detail='Vehicle with the same registration number already exists.'
-        )
-
-
-class UserNotFoundException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Пользователь с данным id не найден.'
-        )
-
-
-class UserPhoneIsNotUniqueException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f'Пользователь с таким номером телефона уже существует.'
-        )
-
-
-class UserEmailIsNotUniqueException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f'Пользователь с таким e-mail уже существует.'
         )
 
 

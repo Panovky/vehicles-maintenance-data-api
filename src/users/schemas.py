@@ -26,5 +26,3 @@ class UserUpdate(BaseModel):
     birthday: Annotated[date | None, Field(default=None, example="1984-09-05")]
     phone: Annotated[str | None, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', default=None,
                                        example="+7 (950) 732-13-83")]
-    email: Annotated[EmailStr | None, Field(default=None, example="nikita.filatov@yandex.ru")]
-    password: Annotated[str | None, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', default=None, example="2a_B4-cJ_q5")]
