@@ -1,4 +1,4 @@
-from sqlalchemy import String
+from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from src.utils.base_model import Base
 
@@ -11,3 +11,4 @@ class Service(Base):
     summary: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
     timetable: Mapped[str] = mapped_column(String(255), nullable=False)
     website: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    manager_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
