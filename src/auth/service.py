@@ -114,4 +114,16 @@ class AuthService:
 
         if not user:
             raise InvalidAccessTokenException()
-        return UserRead.model_validate(user)
+
+        return UserRead(
+            id=user.id,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_name=user.last_name,
+            first_name=user.first_name,
+            patronymic=user.patronymic,
+            birthday=user.birthday,
+            phone=user.phone,
+            email=user.email,
+            roles=[role.role for role in user.roles]
+        )
