@@ -22,7 +22,7 @@ class UserPhoneIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f'Пользователь с таким номером телефона уже существует.'
+            detail='Пользователь с таким номером телефона уже существует.'
         )
 
 
@@ -30,7 +30,7 @@ class UserEmailIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f'Пользователь с таким e-mail уже существует.'
+            detail='Пользователь с таким e-mail уже существует.'
         )
 
 
@@ -39,6 +39,14 @@ class UserNotFoundException(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Пользователь с данным id не найден.'
+        )
+
+
+class AccessDeniedException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Недостаточно прав для выполнения данного действия.',
         )
 
 
