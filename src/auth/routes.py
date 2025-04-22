@@ -1,6 +1,5 @@
 from fastapi import APIRouter, status
-from src.dependencies import AuthServiceDep, CurrentUserByAccessTokenDep, CurrentUserByRefreshTokenDep
-from src.users.schemas import UserRead
+from src.dependencies import AuthServiceDep, CurrentUserByRefreshTokenDep
 from .schemas import UserRegister, UserLogin, TokenRead
 
 router = APIRouter(
@@ -41,15 +40,3 @@ async def login(data: UserLogin, auth_service: AuthServiceDep) -> TokenRead:
 )
 async def refresh(user: CurrentUserByRefreshTokenDep, auth_service: AuthServiceDep):
     return auth_service.refresh(user)
-
-
-@router.get(
-    '/me',
-    responses={
-        200: {'description': 'User successfully received'},
-        401: {'description': 'Access token are invalid'}
-    },
-    summary='Get current user by access token'
-)
-async def me(user: CurrentUserByAccessTokenDep) -> UserRead:
-    return user
