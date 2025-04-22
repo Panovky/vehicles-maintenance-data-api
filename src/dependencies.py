@@ -7,6 +7,7 @@ from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.service import UsersService
 from src.users.schemas import UserRead
 from src.auth.service import AuthService
+from src.services.repository import ServicesRepository
 from src.makes.repository import MakesRepository
 from src.makes.service import MakesService
 
@@ -19,7 +20,7 @@ async def get_async_session() -> AsyncSession:
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
-def get_users_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> UsersRepository:
+def get_users_repository(async_session: AsyncSessionDep) -> UsersRepository:
     return UsersRepository(async_session)
 
 
@@ -30,8 +31,7 @@ def get_users_service(users_repository: Annotated[UsersRepository, Depends(get_u
 UsersServiceDep = Annotated[UsersService, Depends(get_users_service)]
 
 
-def get_user_roles_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) \
-        -> UserRolesRepository:
+def get_user_roles_repository(async_session: AsyncSessionDep) -> UserRolesRepository:
     return UserRolesRepository(async_session)
 
 
@@ -67,7 +67,11 @@ async def get_current_user_by_refresh_token(
 CurrentUserByRefreshTokenDep = Annotated[UserRead, Depends(get_current_user_by_refresh_token)]
 
 
-def get_makes_repository(async_session: Annotated[AsyncSession, Depends(get_async_session)]) -> MakesRepository:
+def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepository:
+    return ServicesRepository(async_session)
+
+
+def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
     return MakesRepository(async_session)
 
 
