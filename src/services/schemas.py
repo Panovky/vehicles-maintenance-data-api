@@ -13,6 +13,7 @@ class ServiceRead(BaseModel):
     summary: Annotated[str | None, Field(example='Сервис по ремонту авто любой сложности.')]
     timetable: Annotated[str, Field(example='Ежедневно с 08:00 до 20:00')]
     website: Annotated[str | None, Field(example='https://yaroslavl.lecar.ru/')]
+    manager_id: Annotated[int, Field(example=1)]
 
 
 class ServiceCreate(BaseModel):
@@ -26,6 +27,7 @@ class ServiceCreate(BaseModel):
     )]
     timetable: Annotated[str, Field(max_length=255, example='Ежедневно с 08:00 до 20:00')]
     website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
+    manager_id: Annotated[int, Field(example=1)]
 
 
 class ServiceUpdate(BaseModel):
@@ -39,3 +41,4 @@ class ServiceUpdate(BaseModel):
     )]
     timetable: Annotated[str | None, Field(max_length=255, default=None, example='Ежедневно с 08:00 до 20:00')]
     website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
+    manager_id: Annotated[int, Field(example=1)]
