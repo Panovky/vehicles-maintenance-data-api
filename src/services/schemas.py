@@ -1,10 +1,12 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated
 
 
 class ServiceRead(BaseModel):
     """The model representing the service data to be returned to the client."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: Annotated[int, Field(example=1)]
     created_at: datetime
     updated_at: datetime
@@ -13,6 +15,7 @@ class ServiceRead(BaseModel):
     summary: Annotated[str | None, Field(example='Сервис по ремонту авто любой сложности.')]
     timetable: Annotated[str, Field(example='Ежедневно с 08:00 до 20:00')]
     website: Annotated[str | None, Field(example='https://yaroslavl.lecar.ru/')]
+    manager_id: Annotated[int, Field(example=1)]
 
 
 class ServiceCreate(BaseModel):
@@ -28,14 +31,14 @@ class ServiceCreate(BaseModel):
     website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
 
 
-class ServiceUpdate(BaseModel):
-    """The model representing the service data needed to update information in the database."""
-    name: Annotated[str | None, Field(max_length=255, default=None, example='LeCar Service')]
-    address: Annotated[str | None, Field(
-        max_length=255, default=None, example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б'
-    )]
-    summary: Annotated[str | None, Field(
-        max_length=500, default=None, example='Сервис по ремонту авто любой сложности.'
-    )]
-    timetable: Annotated[str | None, Field(max_length=255, default=None, example='Ежедневно с 08:00 до 20:00')]
-    website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
+# class ServiceUpdate(BaseModel):
+#     """The model representing the service data needed to update information in the database."""
+#     name: Annotated[str | None, Field(max_length=255, default=None, example='LeCar Service')]
+#     address: Annotated[str | None, Field(
+#         max_length=255, default=None, example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б'
+#     )]
+#     summary: Annotated[str | None, Field(
+#         max_length=500, default=None, example='Сервис по ремонту авто любой сложности.'
+#     )]
+#     timetable: Annotated[str | None, Field(max_length=255, default=None, example='Ежедневно с 08:00 до 20:00')]
+#     website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
