@@ -6,7 +6,7 @@ from src.database import async_session_maker
 from src.exceptions import AccessDeniedException
 from src.users.model import RoleEnum
 from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.service import UsersService
+from src.users.service import UsersService, UserRolesService
 from src.users.schemas import UserRead
 from src.auth.service import AuthService
 from src.services.repository import ServicesRepository
@@ -36,6 +36,15 @@ UsersServiceDep = Annotated[UsersService, Depends(get_users_service)]
 
 def get_user_roles_repository(async_session: AsyncSessionDep) -> UserRolesRepository:
     return UserRolesRepository(async_session)
+
+
+def get_user_roles_service(
+        user_roles_repository: Annotated[UserRolesRepository, Depends(get_user_roles_repository)]
+) -> UserRolesService:
+    return UserRolesService(user_roles_repository)
+
+
+UserRolesServiceDep = Annotated[UserRolesService, Depends(get_user_roles_service)]
 
 
 def get_auth_service(
