@@ -8,14 +8,28 @@ class UsersService:
         self.repository: UsersRepository = repository
 
     async def update(self, _id: int, data: UserUpdate) -> UserRead | None:
-        if await self.repository.exists(phone=data.phone):
+        users_with_same_phone = await self.repository.filter_by(phone=data.phone)
+        if any(user.id != _id for user in users_with_same_phone):
             raise UserPhoneIsNotUniqueException()
 
         user = await self.repository.update(_id, data.model_dump(exclude_none=True))
         if not user:
             raise UserNotFoundException()
 
-        return UserRead.model_validate(user)
+        user = await self.repository.get_by_email(user.email)
+
+        return UserRead(
+            id=user.id,
+            created_at=user.created_at,
+            updated_at=user.updated_at,
+            last_name=user.last_name,
+            first_name=user.first_name,
+            patronymic=user.patronymic,
+            birthday=user.birthday,
+            phone=user.phone,
+            email=user.email,
+            roles=[role.role for role in user.roles]
+        )
 
 
 class UserRolesService:
