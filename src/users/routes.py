@@ -1,5 +1,8 @@
 from fastapi import APIRouter, status
-from src.dependencies import CurrentUserByAccessTokenDep, UserRolesServiceDep, UsersServiceDep
+from src.dependencies import (
+    CurrentUserByAccessTokenDep, UserRolesServiceDep, UsersServiceDep, CurrentManagerDep, ServicesServiceDep
+)
+from src.services.schemas import ServiceCreate, ServiceRead
 from .schemas import UserRoleCreate, UserRoleRead, UserRead, UserUpdate
 
 router = APIRouter(
@@ -18,7 +21,7 @@ router = APIRouter(
     },
     summary='Assign a new role to the current user'
 )
-async def me(
+async def assign_role(
         user: CurrentUserByAccessTokenDep, data: UserRoleCreate, user_roles_service: UserRolesServiceDep
 ) -> UserRoleRead:
     user_roles = await user_roles_service.assign_role(user.id, data)
@@ -33,7 +36,7 @@ async def me(
     },
     summary='Get a current user by access token'
 )
-async def me(user: CurrentUserByAccessTokenDep) -> UserRead:
+async def get_current_user(user: CurrentUserByAccessTokenDep) -> UserRead:
     return user
 
 
@@ -46,6 +49,43 @@ async def me(user: CurrentUserByAccessTokenDep) -> UserRead:
     },
     summary='Update the current user'
 )
-async def me(user: CurrentUserByAccessTokenDep, data: UserUpdate, users_service: UsersServiceDep) -> UserRead:
+async def update_current_user(
+        user: CurrentUserByAccessTokenDep, data: UserUpdate, users_service: UsersServiceDep
+) -> UserRead:
     user = await users_service.update(user.id, data)
     return user
+
+
+@router.post(
+    '/me/services/',
+    tags=['services'],
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {'description': 'Service successfully created'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Create the service by current manager'
+)
+async def create_service(
+        current_manager: CurrentManagerDep, data: ServiceCreate, services_service: ServicesServiceDep
+) -> ServiceRead:
+    service = await services_service.create(data, current_manager.id)
+    return service
+
+
+@router.get(
+    '/me/services/',
+    tags=['services'],
+    responses={
+        200: {'description': 'Services successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Get current manager services'
+)
+async def get_manager_services(
+        current_manager: CurrentManagerDep, services_service: ServicesServiceDep
+) -> list[ServiceRead]:
+    services = await services_service.get_manager_services(current_manager.id)
+    return services

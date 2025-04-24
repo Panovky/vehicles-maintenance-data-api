@@ -58,6 +58,14 @@ class AccessDeniedException(HTTPException):
         )
 
 
+class ServiceNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Автосервис с указанным id не найден.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
@@ -87,12 +95,4 @@ class RegistrationNumberIsNotUniqueException(HTTPException):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
             detail='Vehicle with the same registration number already exists.'
-        )
-
-
-class ServiceNotFoundException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Service not found.'
         )
