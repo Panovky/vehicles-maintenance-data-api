@@ -1,3 +1,4 @@
+from datetime import datetime
 from src.exceptions import UserPhoneIsNotUniqueException, UserNotFoundException, RoleAlreadyExistsForUserException
 from .repository import UsersRepository, UserRolesRepository
 from .schemas import UserRoleCreate, UserRoleRead, UserUpdate, UserRead
@@ -8,11 +9,27 @@ class UsersService:
         self.repository: UsersRepository = repository
 
     async def update(self, _id: int, data: UserUpdate) -> UserRead | None:
-        users_with_same_phone = await self.repository.filter_by(phone=data.phone)
-        if any(user.id != _id for user in users_with_same_phone):
-            raise UserPhoneIsNotUniqueException()
+        data_dict = data.model_dump(exclude_none=True)
 
-        user = await self.repository.update(_id, data.model_dump(exclude_none=True))
+        if (patronymic := data_dict.get('patronymic')) is not None:
+            if patronymic == '':
+                data_dict['patronymic'] = None
+
+        if (phone := data_dict.get('phone')) is not None:
+            if phone == '':
+                data_dict['phone'] = None
+            else:
+                users_with_same_phone = await self.repository.filter_by(phone=phone)
+                if any(user.id != _id for user in users_with_same_phone):
+                    raise UserPhoneIsNotUniqueException()
+
+        if (birthday := data_dict.get('birthday')) is not None:
+            if birthday == '':
+                data_dict['birthday'] = None
+            else:
+                data_dict['birthday'] = datetime.strptime(birthday, "%Y-%m-%d").date()
+
+        user = await self.repository.update(_id, data_dict)
         if not user:
             raise UserNotFoundException()
 
