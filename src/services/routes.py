@@ -28,7 +28,7 @@ async def get_service(
 
 
 @router.get(
-    '/',
+    '',
     responses={
         200: {'description': 'Services successfully received'},
         401: {'description': 'Access token are invalid'}

@@ -57,7 +57,7 @@ async def update_current_user(
 
 
 @router.post(
-    '/me/services/',
+    '/me/services',
     tags=['services'],
     status_code=status.HTTP_201_CREATED,
     responses={
@@ -75,7 +75,7 @@ async def create_service(
 
 
 @router.get(
-    '/me/services/',
+    '/me/services',
     tags=['services'],
     responses={
         200: {'description': 'Services successfully received'},

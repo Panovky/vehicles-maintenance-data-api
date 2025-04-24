@@ -18,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.post('/', responses={200: {'model': ScrapeResponse}}, summary='Scrape drom.ru')
+@router.post('', responses={200: {'model': ScrapeResponse}}, summary='Scrape drom.ru')
 async def scrape_drom_ru(async_session: AsyncSessionDep) -> JSONResponse:
     """
     Scrape vehicles makes, models, models ranges, generations and configurations from drom.ru.
