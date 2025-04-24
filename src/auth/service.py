@@ -68,7 +68,7 @@ class AuthService:
         )
 
     async def register(self, data: UserRegister) -> TokenRead:
-        if await self.users_repository.exists(phone=data.phone):
+        if (phone := data.phone) and await self.users_repository.exists(phone=phone):
             raise UserPhoneIsNotUniqueException()
 
         if await self.users_repository.exists(email=data.email):
