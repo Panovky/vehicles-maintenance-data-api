@@ -152,4 +152,4 @@ def get_drom_scraper_service(
     )
 
 
-DromScraperServiceDep = Annotated[MakesService, Depends(get_makes_service)]
+DromScraperServiceDep = Annotated[DromScraperService, Depends(get_drom_scraper_service)]
