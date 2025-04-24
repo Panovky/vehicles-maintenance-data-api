@@ -141,11 +141,11 @@ MakesServiceDep = Annotated[MakesService, Depends(get_makes_service)]
 
 
 def get_drom_scraper_service(
-        makes_repository: MakesRepository,
-        models_repository: ModelsRepository,
-        ranges_repository: RangesRepository,
-        generations_repository: GenerationsRepository,
-        configurations_repository: ConfigurationsRepository
+        makes_repository: Annotated[MakesRepository, Depends(get_makes_repository)],
+        models_repository: Annotated[ModelsRepository, Depends(get_models_repository)],
+        ranges_repository: Annotated[RangesRepository, Depends(get_ranges_repository)],
+        generations_repository: Annotated[GenerationsRepository, Depends(get_generations_repository)],
+        configurations_repository: Annotated[ConfigurationsRepository, Depends(get_configurations_repository)]
 ) -> DromScraperService:
     return DromScraperService(
         makes_repository, models_repository, ranges_repository, generations_repository, configurations_repository
