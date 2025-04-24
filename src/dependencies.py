@@ -13,6 +13,11 @@ from src.services.repository import ServicesRepository
 from src.services.service import ServicesService
 from src.makes.repository import MakesRepository
 from src.makes.service import MakesService
+from src.models.repository import ModelsRepository
+from src.ranges.repository import RangesRepository
+from src.generations.repository import GenerationsRepository
+from src.configurations.repository import ConfigurationsRepository
+from src.scrapers.service import DromScraperService
 
 
 async def get_async_session() -> AsyncSession:
@@ -92,6 +97,7 @@ def get_checker_user_roles(required_roles: list[RoleEnum]):
 
 
 CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.manager]))]
+CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
 
 
 def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepository:
@@ -111,8 +117,39 @@ def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
     return MakesRepository(async_session)
 
 
+def get_models_repository(async_session: AsyncSessionDep) -> ModelsRepository:
+    return ModelsRepository(async_session)
+
+
+def get_ranges_repository(async_session: AsyncSessionDep) -> RangesRepository:
+    return RangesRepository(async_session)
+
+
+def get_generations_repository(async_session: AsyncSessionDep) -> GenerationsRepository:
+    return GenerationsRepository(async_session)
+
+
+def get_configurations_repository(async_session: AsyncSessionDep) -> ConfigurationsRepository:
+    return ConfigurationsRepository(async_session)
+
+
 def get_makes_service(makes_repository: Annotated[MakesRepository, Depends(get_makes_repository)]) -> MakesService:
     return MakesService(makes_repository)
 
 
 MakesServiceDep = Annotated[MakesService, Depends(get_makes_service)]
+
+
+def get_drom_scraper_service(
+        makes_repository: MakesRepository,
+        models_repository: ModelsRepository,
+        ranges_repository: RangesRepository,
+        generations_repository: GenerationsRepository,
+        configurations_repository: ConfigurationsRepository
+) -> DromScraperService:
+    return DromScraperService(
+        makes_repository, models_repository, ranges_repository, generations_repository, configurations_repository
+    )
+
+
+DromScraperServiceDep = Annotated[MakesService, Depends(get_makes_service)]

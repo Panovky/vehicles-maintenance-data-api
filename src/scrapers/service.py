@@ -2,7 +2,25 @@ import requests
 from bs4 import BeautifulSoup
 from src.models.model import ModelTypeEnum
 from src.configurations.model import EngineTypeEnum, TransmissionEnum, DriveEnum
+from src.makes.repository import MakesRepository
+from src.models.repository import ModelsRepository
+from src.ranges.repository import RangesRepository
+from src.generations.repository import GenerationsRepository
+from src.configurations.repository import ConfigurationsRepository
 from .schemas import MakeScrape, ModelScrape, RangeScrape, GenerationScrape, ConfigurationScrape
+
+
+class DromScraperService:
+    def __init__(
+            self, makes_repository: MakesRepository, models_repository: ModelsRepository,
+            ranges_repository: RangesRepository, generations_repository: GenerationsRepository,
+            configurations_repository: ConfigurationsRepository
+    ):
+        self.makes_repository: MakesRepository = makes_repository
+        self.models_repository: ModelsRepository = models_repository
+        self.ranges_repository: RangesRepository = ranges_repository
+        self.generations_repository: GenerationsRepository = generations_repository
+        self.configurations_repository: ConfigurationsRepository = configurations_repository
 
 
 class UnexpectedDromResponseError(Exception):

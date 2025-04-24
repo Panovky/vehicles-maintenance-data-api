@@ -13,8 +13,8 @@ from .service import scrape_makes, scrape_models, scrape_ranges_and_generations,
     UnexpectedDromResponseError, get_unhandled_error_info
 
 router = APIRouter(
-    prefix='/scrape',
-    tags=['scrape']
+    prefix='/scrapers',
+    tags=['scrapers']
 )
 
 
