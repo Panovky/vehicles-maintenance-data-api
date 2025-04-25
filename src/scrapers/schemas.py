@@ -3,16 +3,6 @@ from typing import Annotated
 from src.models.model import ModelTypeEnum
 
 
-class MakeScrape(BaseModel):
-    """
-    The model representing the data of vehicle make scraped from drom.ru.
-
-    The model used for further data scraping.
-    """
-    name: str
-    models_drom_url: str
-
-
 class ModelScrape(BaseModel):
     """
     The model representing the data of vehicle model scraped from drom.ru.
@@ -60,15 +50,14 @@ class ConfigurationScrape(BaseModel):
     drive: str | None
 
 
-class UnhandledError(BaseModel):
+class UnhandledDromResponseErrorRead(BaseModel):
     """The model describes the error that occurred when receiving a response from the drom.ru."""
-    location: Annotated[str, Field(example='Unexpected drom.ru response error occurred while scraping makes.')]
-    drom_request_url: Annotated[str, Field(example='https://www.drom.ru/catalog/')]
-    drom_response_status_code: Annotated[int, Field(example=500)]
-    drom_response_reason: Annotated[str, Field(example='Internal Server Error')]
+    location: Annotated[str, Field(example='Марки')]
+    request_url: Annotated[str, Field(example='https://www.drom.ru/catalog-unknown/')]
+    response_status_code: Annotated[int, Field(example=404)]
+    response_reason: Annotated[str, Field(example='Not Found')]
 
 
-class ScrapeResponse(BaseModel):
-    """The model describes the response to a request for data scraping from drom.ru."""
-    detail: Annotated[str, Field(example='Data from drom.ru successfully scraped.')]
-    unhandled_errors: list[UnhandledError]
+class UnhandledDromResponseErrorsRead(BaseModel):
+    """The model describes the list of errors that occurred when receiving a response from the drom.ru."""
+    unhandled_errors: list[UnhandledDromResponseErrorRead]
