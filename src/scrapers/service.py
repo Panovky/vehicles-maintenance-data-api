@@ -27,6 +27,7 @@ class DromScraperService:
         self.configurations_repository: ConfigurationsRepository = configurations_repository
 
     async def scrape_makes(self, url: str) -> list[UnhandledDromResponseErrorRead]:
+        time.sleep(1.5)
         response = requests.get(url, allow_redirects=False)
         if response.status_code != 200:
             return [
@@ -51,6 +52,7 @@ class DromScraperService:
         return unhandled_errors
 
     async def scrape_models(self, make_id: int, url: str) -> list[UnhandledDromResponseErrorRead]:
+        time.sleep(1.5)
         response = requests.get(url, allow_redirects=False)
         if response.status_code != 200:
             return [
@@ -79,6 +81,7 @@ class DromScraperService:
         return unhandled_errors
 
     async def scrape_ranges_and_generations(self, model_id: int, url: str) -> list[UnhandledDromResponseErrorRead]:
+        time.sleep(1.5)
         response = requests.get(url, allow_redirects=False)
         if response.status_code != 200:
             return [
@@ -133,6 +136,7 @@ class DromScraperService:
         return unhandled_errors
 
     async def scrape_configurations(self, generation_id: int, url: str) -> list[UnhandledDromResponseErrorRead]:
+        time.sleep(1.5)
         response = requests.get(url, allow_redirects=False)
         if response.status_code != 200:
             return [
@@ -206,6 +210,5 @@ class DromScraperService:
 
     async def init_scraper(self) -> UnhandledDromResponseErrorsRead:
         unhandled_errors = await self.scrape_makes('https://www.drom.ru/catalog/')
-        time.sleep(1.5)
         unhandled_errors += await self.scrape_makes('https://www.drom.ru/catalog/lcv/')
         return UnhandledDromResponseErrorsRead(unhandled_errors=unhandled_errors)
