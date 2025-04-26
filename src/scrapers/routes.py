@@ -8,7 +8,15 @@ router = APIRouter(
 )
 
 
-@router.post('/drom', responses={200: {'description': 'Data successfully scraped'}}, summary='Scrape data from drom.ru')
+@router.post(
+    '/drom',
+    responses={
+        200: {'description': 'Data successfully scraped'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Scrape data from drom.ru'
+)
 async def scrape_drom_data(
         current_admin: CurrentAdminDep, drom_scraper_service: DromScraperServiceDep
 ) -> UnhandledDromResponseErrorsRead:
