@@ -67,6 +67,12 @@ class AuthService:
             token_expire_minutes=settings.jwt_auth.refresh_token_expire_days * 24 * 60
         )
 
+    def get_verify_email_token(self, email: str) -> str:
+        return self.encode_jwt(
+            payload={'sub': email, 'type': 'verify_email'},
+            token_expire_minutes=settings.jwt_auth.verify_email_token_expire_hours * 60
+        )
+
     async def register(self, data: UserRegister) -> TokenRead:
         if (phone := data.phone) and await self.users_repository.exists(phone=phone):
             raise UserPhoneIsNotUniqueException()
