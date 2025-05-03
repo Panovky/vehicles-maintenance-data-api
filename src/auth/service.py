@@ -1,5 +1,12 @@
 import bcrypt
 import jwt
+import os
+import smtplib
+import imaplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from imapclient import imap_utf7
 from datetime import timedelta, datetime
 from jwt.exceptions import InvalidTokenError
 from src.config import settings
@@ -16,6 +23,39 @@ class AuthService:
     def __init__(self, users_repository: UsersRepository, user_roles_repository: UserRolesRepository):
         self.users_repository: UsersRepository = users_repository
         self.user_roles_repository: UserRolesRepository = user_roles_repository
+
+    @staticmethod
+    def send_email(receiver_address, subject, text, html):
+        sender_address = os.getenv('EMAIL_ADDRESS')
+        sender_app_password = os.getenv('EMAIL_APP_PASSWORD')
+        sender_smtp_server = os.getenv('EMAIL_SMTP_SERVER')
+        sender_imap_server = os.getenv('EMAIL_IMAP_SERVER')
+        sender_smtp_port = int(os.getenv('EMAIL_SMTP_PORT'))
+        sender_imap_port = int(os.getenv('EMAIL_IMAP_PORT'))
+
+        message = MIMEMultipart('alternative')
+        message['From'] = sender_address
+        message['To'] = receiver_address
+        message['Subject'] = Header(subject, 'utf-8')
+
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        message.attach(part1)
+        message.attach(part2)
+
+        smtp = smtplib.SMTP_SSL(sender_smtp_server, sender_smtp_port)
+        smtp.login(sender_address, sender_app_password)
+        smtp.sendmail(sender_address, receiver_address, message.as_string())
+        smtp.quit()
+
+        imap = imaplib.IMAP4_SSL(sender_imap_server, sender_imap_port)
+        imap.login(sender_address, sender_app_password)
+        imap.append(
+            mailbox=str(imap_utf7.encode('Отправленные'))[2:-1],
+            flags=None,
+            date_time=None,
+            message=message.as_bytes())
+        imap.logout()
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -83,9 +123,62 @@ class AuthService:
         data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role'}
         password_hash = self.hash_password(data.password)
         data_dict['password_hash'] = password_hash
+        data_dict['is_email_verified'] = False
         user = await self.users_repository.create(data_dict)
-
         await self.user_roles_repository.assign_role(user.id, data.role)
+
+        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
+        verify_email_url = f'http://localhost:8000/auth/verify-email?token={self.get_verify_email_token(user.email)}'
+
+        self.send_email(
+            receiver_address=user.email,
+            subject='Завершение регистрации в приложении для управления данными о техническом обслуживании автомобилей',
+            text=f"""
+            {name}, Вы получили это письмо, 
+            так как зарегистрировались в нашем приложении для управления данными о техническом обслуживании автомобилей.
+
+            Для завершения регистрации перейдите по ссылке:
+            {verify_email_url}
+            (Ссылка действительна в течение 24 часов)
+            
+            Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
+            
+            Если Вы не регистрировались в приложении, проигнорируйте это письмо.
+            """,
+            html=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
+                <p>{name}, Вы получили это письмо,
+                так как зарегистрировались в нашем приложении 
+                для управления данными о техническом обслуживании автомобилей.</p>
+                
+                <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
+                    <p>Для завершения регистрации подтвердите Ваш e-mail:</p>
+                    <a href="{verify_email_url}" 
+                        style="
+                            display: inline-block; 
+                            padding: 12px 24px;
+                            background-color: #f77320; 
+                            color: #FFFFFF !important;
+                            text-decoration: none; 
+                            border-radius: 4px;
+                            font-weight: bold; 
+                            margin: 5px 0;">Подтвердить e-mail</a>
+                    <p>Кнопка активна в течение 24 часов</p>
+                </div>
+            
+                <p>Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:<br>
+                <a href="{verify_email_url}">{verify_email_url}</a></p>
+            
+                <p><em>Если Вы не регистрировались в системе, проигнорируйте это письмо.</em></p>
+            </body>
+            </html>
+            """
+        )
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),
