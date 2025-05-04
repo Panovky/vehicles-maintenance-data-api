@@ -21,6 +21,7 @@ async def register(data: UserRegister, auth_service: AuthServiceDep) -> TokenRea
 
 @router.get(
     '/verify-email',
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         204: {'description': 'User email successfully verified'},
         400: {'description': 'Verify email token is invalid'},
