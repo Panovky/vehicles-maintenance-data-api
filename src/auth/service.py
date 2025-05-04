@@ -206,6 +206,7 @@ class AuthService:
             if email := payload.get('sub'):
                 if user := await self.users_repository.get_by_email(email):
                     await self.users_repository.update(user.id, {'is_email_verified': True})
+                    return
 
         raise InvalidVerifyEmailTokenException()
 
