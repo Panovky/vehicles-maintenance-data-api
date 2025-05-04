@@ -50,6 +50,14 @@ class InvalidUserCredentialsException(HTTPException):
         )
 
 
+class UserEmailIsNotVerifiedException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Для доступа к приложению завершите регистрацию, перейдя по ссылке в письме.'
+        )
+
+
 class InvalidAccessTokenException(HTTPException):
     def __init__(self):
         super().__init__(

@@ -13,7 +13,7 @@ from src.config import settings
 from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
     ExpiredVerifyEmailTokenException, InvalidVerifyEmailTokenException, InvalidUserCredentialsException,
-    InvalidAccessTokenException
+    UserEmailIsNotVerifiedException, InvalidAccessTokenException
 )
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
@@ -69,8 +69,13 @@ class AuthService:
 
     async def get_authenticated_user(self, data: UserLogin) -> UserRead | None:
         user = await self.users_repository.get_by_email(data.email)
+
         if not user or not self.verify_password(data.password, user.password_hash):
             raise InvalidUserCredentialsException()
+
+        if not user.is_email_verified:
+            raise UserEmailIsNotVerifiedException()
+
         return user
 
     @staticmethod
@@ -206,8 +211,6 @@ class AuthService:
 
     async def login(self, data: UserLogin) -> TokenRead:
         user = await self.get_authenticated_user(data)
-        if not user:
-            raise
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),

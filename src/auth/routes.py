@@ -37,7 +37,8 @@ async def verify_email(token: str, auth_service: AuthServiceDep) -> Response:
     '/login',
     responses={
         200: {'description': 'User successfully logged in'},
-        401: {'description': "User's credentials are invalid"}
+        401: {'description': "User's credentials are invalid"},
+        403: {'description': 'User email is not verified'}
     },
     summary='Log in'
 )
