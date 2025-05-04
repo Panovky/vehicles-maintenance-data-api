@@ -67,7 +67,7 @@ class AuthService:
     def verify_password(password: str, password_hash: str) -> bool:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
 
-    async def get_authenticated_user(self, data: UserLogin) -> UserRead | None:
+    async def get_user_by_credentials(self, data: UserLogin) -> UserRead | None:
         user = await self.users_repository.get_by_email(data.email)
 
         if not user or not self.verify_password(data.password, user.password_hash):
@@ -210,7 +210,7 @@ class AuthService:
         raise InvalidVerifyEmailTokenException()
 
     async def login(self, data: UserLogin) -> TokenRead:
-        user = await self.get_authenticated_user(data)
+        user = await self.get_user_by_credentials(data)
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),
@@ -235,6 +235,9 @@ class AuthService:
 
         if not user:
             raise InvalidAccessTokenException()
+
+        if token_type == 'access' and not user.is_email_verified:
+            raise UserEmailIsNotVerifiedException()
 
         return UserRead(
             id=user.id,
