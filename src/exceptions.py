@@ -58,11 +58,11 @@ class UserEmailIsNotVerifiedException(HTTPException):
         )
 
 
-class InvalidAccessTokenException(HTTPException):
-    def __init__(self):
+class InvalidTokenException(HTTPException):
+    def __init__(self, token_type: str):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Неверный токен доступа.'
+            detail=f'Неверный токен {"доступа" if token_type == "access" else "обновления"}.'
         )
 
 

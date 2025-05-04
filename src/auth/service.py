@@ -13,7 +13,7 @@ from src.config import settings
 from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
     ExpiredVerifyEmailTokenException, InvalidVerifyEmailTokenException, InvalidUserCredentialsException,
-    UserEmailIsNotVerifiedException, InvalidAccessTokenException
+    UserEmailIsNotVerifiedException, InvalidTokenException
 )
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
@@ -225,16 +225,16 @@ class AuthService:
         try:
             payload = self.decode_jwt(token=token)
         except InvalidTokenError:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
 
         if payload.get('type') != token_type:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
 
         email = payload.get('email')
         user = await self.users_repository.get_by_email(email)
 
         if not user:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
 
         if token_type == 'access' and not user.is_email_verified:
             raise UserEmailIsNotVerifiedException()
