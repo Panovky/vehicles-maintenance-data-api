@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Response
 from src.dependencies import AuthServiceDep, CurrentUserByRefreshTokenDep
 from .schemas import UserRegister, UserLogin, TokenRead
 
@@ -17,6 +17,20 @@ router = APIRouter(
 async def register(data: UserRegister, auth_service: AuthServiceDep) -> TokenRead:
     access_token = await auth_service.register(data)
     return access_token
+
+
+@router.get(
+    '/verify-email',
+    responses={
+        204: {'description': 'User email successfully verified'},
+        400: {'description': 'Verify email token is invalid'},
+        410: {'description': 'Verify email token expired'},
+    },
+    summary='Verify user email'
+)
+async def verify_email(token: str, auth_service: AuthServiceDep) -> Response:
+    await auth_service.verify_email(token)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(

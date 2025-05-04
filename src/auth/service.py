@@ -8,10 +8,11 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from imapclient import imap_utf7
 from datetime import timedelta, datetime
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from src.config import settings
 from src.exceptions import (
-    UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException,
+    UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
+    ExpiredVerifyEmailTokenException, InvalidVerifyEmailTokenException, InvalidUserCredentialsException,
     InvalidAccessTokenException
 )
 from src.users.repository import UsersRepository, UserRolesRepository
@@ -114,11 +115,14 @@ class AuthService:
         )
 
     async def register(self, data: UserRegister) -> TokenRead:
+        if res := await self.users_repository.filter_by(email=data.email):
+            if res[0].is_email_verified:
+                raise UserEmailIsNotUniqueException()
+            else:
+                raise EmailVerifyingPendingException()
+
         if (phone := data.phone) and await self.users_repository.exists(phone=phone):
             raise UserPhoneIsNotUniqueException()
-
-        if await self.users_repository.exists(email=data.email):
-            raise UserEmailIsNotUniqueException()
 
         data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role'}
         password_hash = self.hash_password(data.password)
@@ -157,7 +161,7 @@ class AuthService:
                 для управления данными о техническом обслуживании автомобилей.</p>
                 
                 <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
-                    <p>Для завершения регистрации подтвердите Ваш e-mail:</p>
+                    <p>Для завершения регистрации подтвердите Ваш email:</p>
                     <a href="{verify_email_url}" 
                         style="
                             display: inline-block; 
@@ -167,7 +171,7 @@ class AuthService:
                             text-decoration: none; 
                             border-radius: 4px;
                             font-weight: bold; 
-                            margin: 5px 0;">Подтвердить e-mail</a>
+                            margin: 5px 0;">Подтвердить email</a>
                     <p>Кнопка активна в течение 24 часов</p>
                 </div>
             
@@ -184,6 +188,21 @@ class AuthService:
             access_token=self.get_access_token(user.id, user.email),
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
+
+    async def verify_email(self, token: str) -> None:
+        try:
+            payload = self.decode_jwt(token=token)
+        except ExpiredSignatureError:
+            raise ExpiredVerifyEmailTokenException()
+        except InvalidTokenError:
+            raise InvalidVerifyEmailTokenException()
+
+        if payload.get('type') == 'verify_email':
+            if email := payload.get('sub'):
+                if user := await self.users_repository.get_by_email(email):
+                    await self.users_repository.update(user.id, {'is_email_verified': True})
+
+        raise InvalidVerifyEmailTokenException()
 
     async def login(self, data: UserLogin) -> TokenRead:
         user = await self.get_authenticated_user(data)
