@@ -17,6 +17,7 @@ router = APIRouter(
     responses={
         201: {'description': 'Role successfully assigned'},
         401: {'description': 'Access token are invalid'},
+        403: {'description': 'User email is not verified'},
         409: {'description': 'Role already exists'}
     },
     summary='Assign a new role to the current user'
@@ -32,7 +33,8 @@ async def assign_role(
     '/me',
     responses={
         200: {'description': 'Current user successfully received'},
-        401: {'description': 'Access token are invalid'}
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'User email is not verified'}
     },
     summary='Get a current user by access token'
 )
@@ -45,6 +47,7 @@ async def get_current_user(user: CurrentUserByAccessTokenDep) -> UserRead:
     responses={
         200: {'description': 'Current user successfully updated'},
         401: {'description': 'Access token are invalid'},
+        403: {'description': 'User email is not verified'},
         409: {'description': 'Current user data is not unique'}
     },
     summary='Update the current user'
