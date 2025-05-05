@@ -14,6 +14,7 @@ router = APIRouter(
     responses={
         200: {'description': 'Service successfully received'},
         401: {'description': 'Access token are invalid'},
+        403: {'description': 'User email is not verified'},
         404: {'description': 'Service not found'}
     },
     summary='Get the service by id'
@@ -31,7 +32,8 @@ async def get_service(
     '',
     responses={
         200: {'description': 'Services successfully received'},
-        401: {'description': 'Access token are invalid'}
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'User email is not verified'}
     },
     summary='Get all services'
 )

@@ -1,11 +1,19 @@
 import bcrypt
 import jwt
+import os
+import smtplib
+import imaplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from imapclient import imap_utf7
 from datetime import timedelta, datetime
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from src.config import settings
 from src.exceptions import (
-    UserPhoneIsNotUniqueException, UserEmailIsNotUniqueException, InvalidUserCredentialsException,
-    InvalidAccessTokenException
+    UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
+    ExpiredVerifyEmailTokenException, InvalidVerifyEmailTokenException, InvalidUserCredentialsException,
+    UserEmailIsNotVerifiedException, InvalidTokenException
 )
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead
@@ -18,6 +26,39 @@ class AuthService:
         self.user_roles_repository: UserRolesRepository = user_roles_repository
 
     @staticmethod
+    def send_email(receiver_address, subject, text, html):
+        sender_address = os.getenv('EMAIL_ADDRESS')
+        sender_app_password = os.getenv('EMAIL_APP_PASSWORD')
+        sender_smtp_server = os.getenv('EMAIL_SMTP_SERVER')
+        sender_imap_server = os.getenv('EMAIL_IMAP_SERVER')
+        sender_smtp_port = int(os.getenv('EMAIL_SMTP_PORT'))
+        sender_imap_port = int(os.getenv('EMAIL_IMAP_PORT'))
+
+        message = MIMEMultipart('alternative')
+        message['From'] = sender_address
+        message['To'] = receiver_address
+        message['Subject'] = Header(subject, 'utf-8')
+
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        message.attach(part1)
+        message.attach(part2)
+
+        smtp = smtplib.SMTP_SSL(sender_smtp_server, sender_smtp_port)
+        smtp.login(sender_address, sender_app_password)
+        smtp.sendmail(sender_address, receiver_address, message.as_string())
+        smtp.quit()
+
+        imap = imaplib.IMAP4_SSL(sender_imap_server, sender_imap_port)
+        imap.login(sender_address, sender_app_password)
+        imap.append(
+            mailbox=str(imap_utf7.encode('Отправленные'))[2:-1],
+            flags=None,
+            date_time=None,
+            message=message.as_bytes())
+        imap.logout()
+
+    @staticmethod
     def hash_password(password: str) -> str:
         password_hash_bytes = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
         return password_hash_bytes.decode()
@@ -26,10 +67,15 @@ class AuthService:
     def verify_password(password: str, password_hash: str) -> bool:
         return bcrypt.checkpw(password.encode(), password_hash.encode())
 
-    async def get_authenticated_user(self, data: UserLogin) -> UserRead | None:
+    async def get_user_by_credentials(self, data: UserLogin) -> UserRead | None:
         user = await self.users_repository.get_by_email(data.email)
+
         if not user or not self.verify_password(data.password, user.password_hash):
             raise InvalidUserCredentialsException()
+
+        if not user.is_email_verified:
+            raise UserEmailIsNotVerifiedException()
+
         return user
 
     @staticmethod
@@ -67,29 +113,105 @@ class AuthService:
             token_expire_minutes=settings.jwt_auth.refresh_token_expire_days * 24 * 60
         )
 
+    def get_verify_email_token(self, email: str) -> str:
+        return self.encode_jwt(
+            payload={'sub': email, 'type': 'verify_email'},
+            token_expire_minutes=settings.jwt_auth.verify_email_token_expire_hours * 60
+        )
+
     async def register(self, data: UserRegister) -> TokenRead:
+        if res := await self.users_repository.filter_by(email=data.email):
+            if res[0].is_email_verified:
+                raise UserEmailIsNotUniqueException()
+            else:
+                raise EmailVerifyingPendingException()
+
         if (phone := data.phone) and await self.users_repository.exists(phone=phone):
             raise UserPhoneIsNotUniqueException()
-
-        if await self.users_repository.exists(email=data.email):
-            raise UserEmailIsNotUniqueException()
 
         data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role'}
         password_hash = self.hash_password(data.password)
         data_dict['password_hash'] = password_hash
+        data_dict['is_email_verified'] = False
         user = await self.users_repository.create(data_dict)
-
         await self.user_roles_repository.assign_role(user.id, data.role)
+
+        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
+        verify_email_url = f'http://localhost:8000/auth/verify-email?token={self.get_verify_email_token(user.email)}'
+
+        self.send_email(
+            receiver_address=user.email,
+            subject='Завершение регистрации в приложении для управления данными о техническом обслуживании автомобилей',
+            text=f"""
+            {name}, Вы получили это письмо, 
+            так как зарегистрировались в нашем приложении для управления данными о техническом обслуживании автомобилей.
+
+            Для завершения регистрации перейдите по ссылке:
+            {verify_email_url}
+            (Ссылка действительна в течение 24 часов)
+            
+            Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
+            
+            Если Вы не регистрировались в приложении, проигнорируйте это письмо.
+            """,
+            html=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
+                <p>{name}, Вы получили это письмо,
+                так как зарегистрировались в нашем приложении 
+                для управления данными о техническом обслуживании автомобилей.</p>
+                
+                <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
+                    <p>Для завершения регистрации подтвердите Ваш email:</p>
+                    <a href="{verify_email_url}" 
+                        style="
+                            display: inline-block; 
+                            padding: 12px 24px;
+                            background-color: #f77320; 
+                            color: #FFFFFF !important;
+                            text-decoration: none; 
+                            border-radius: 4px;
+                            font-weight: bold; 
+                            margin: 5px 0;">Подтвердить email</a>
+                    <p>Кнопка активна в течение 24 часов</p>
+                </div>
+            
+                <p>Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:<br>
+                <a href="{verify_email_url}">{verify_email_url}</a></p>
+            
+                <p><em>Если Вы не регистрировались в системе, проигнорируйте это письмо.</em></p>
+            </body>
+            </html>
+            """
+        )
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
 
+    async def verify_email(self, token: str) -> None:
+        try:
+            payload = self.decode_jwt(token=token)
+        except ExpiredSignatureError:
+            raise ExpiredVerifyEmailTokenException()
+        except InvalidTokenError:
+            raise InvalidVerifyEmailTokenException()
+
+        if payload.get('type') == 'verify_email':
+            if email := payload.get('sub'):
+                if user := await self.users_repository.get_by_email(email):
+                    await self.users_repository.update(user.id, {'is_email_verified': True})
+                    return
+
+        raise InvalidVerifyEmailTokenException()
+
     async def login(self, data: UserLogin) -> TokenRead:
-        user = await self.get_authenticated_user(data)
-        if not user:
-            raise
+        user = await self.get_user_by_credentials(data)
 
         return TokenRead(
             access_token=self.get_access_token(user.id, user.email),
@@ -104,16 +226,19 @@ class AuthService:
         try:
             payload = self.decode_jwt(token=token)
         except InvalidTokenError:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
 
         if payload.get('type') != token_type:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
 
         email = payload.get('email')
         user = await self.users_repository.get_by_email(email)
 
         if not user:
-            raise InvalidAccessTokenException()
+            raise InvalidTokenException(token_type)
+
+        if token_type == 'access' and not user.is_email_verified:
+            raise UserEmailIsNotVerifiedException()
 
         return UserRead(
             id=user.id,

@@ -10,6 +10,12 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      EMAIL_ADDRESS: ${EMAIL_ADDRESS}
+      EMAIL_APP_PASSWORD: ${EMAIL_APP_PASSWORD}
+      EMAIL_SMTP_SERVER: ${EMAIL_SMTP_SERVER}
+      EMAIL_IMAP_SERVER: ${EMAIL_IMAP_SERVER}
+      EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT}
+      EMAIL_IMAP_PORT: ${EMAIL_IMAP_PORT}
     volumes:
       - ./migrations:/VehiclesMaintenanceDataAPI/migrations
       - ./src:/VehiclesMaintenanceDataAPI/src

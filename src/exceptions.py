@@ -2,19 +2,19 @@ from fastapi import HTTPException
 from starlette import status
 
 
-class InvalidUserCredentialsException(HTTPException):
+class UserEmailIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Неверный e-mail или пароль.'
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Пользователь с таким email уже существует.'
         )
 
 
-class InvalidAccessTokenException(HTTPException):
+class EmailVerifyingPendingException(HTTPException):
     def __init__(self):
         super().__init__(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Неверный токен доступа.'
+            status_code=status.HTTP_409_CONFLICT,
+            detail='На указанную почту уже выслано письмо для завершения регистрации.'
         )
 
 
@@ -26,11 +26,43 @@ class UserPhoneIsNotUniqueException(HTTPException):
         )
 
 
-class UserEmailIsNotUniqueException(HTTPException):
+class ExpiredVerifyEmailTokenException(HTTPException):
     def __init__(self):
         super().__init__(
-            status_code=status.HTTP_409_CONFLICT,
-            detail='Пользователь с таким e-mail уже существует.'
+            status_code=status.HTTP_410_GONE,
+            detail='Ссылка для подтверждения email устарела. Необходима повторная отправка письма.'
+        )
+
+
+class InvalidVerifyEmailTokenException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Неверный токен для подтверждения email.'
+        )
+
+
+class InvalidUserCredentialsException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Неверный email или пароль.'
+        )
+
+
+class UserEmailIsNotVerifiedException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Для доступа к приложению завершите регистрацию, перейдя по ссылке в письме.'
+        )
+
+
+class InvalidTokenException(HTTPException):
+    def __init__(self, token_type: str):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f'Неверный токен {"доступа" if token_type == "access" else "обновления"}.'
         )
 
 
