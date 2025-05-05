@@ -96,6 +96,7 @@ def get_checker_user_roles(required_roles: list[RoleEnum]):
     return check_user_has_roles
 
 
+CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.owner]))]
 CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.manager]))]
 CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
 
