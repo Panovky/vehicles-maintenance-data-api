@@ -9,6 +9,8 @@ from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.service import UsersService, UserRolesService
 from src.users.schemas import UserRead
 from src.auth.service import AuthService
+from src.vehicles.repository import VehiclesRepository
+from src.vehicles.service import VehiclesService
 from src.services.repository import ServicesRepository
 from src.services.service import ServicesService
 from src.makes.repository import MakesRepository
@@ -99,6 +101,19 @@ def get_checker_user_roles(required_roles: list[RoleEnum]):
 CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.owner]))]
 CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.manager]))]
 CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
+
+
+def get_vehicles_repository(async_session: AsyncSessionDep) -> VehiclesRepository:
+    return VehiclesRepository(async_session)
+
+
+def get_vehicles_service(
+        vehicles_repository: Annotated[VehiclesRepository, Depends(get_vehicles_repository)]
+) -> VehiclesService:
+    return VehiclesService(vehicles_repository)
+
+
+VehiclesServiceDep = Annotated[VehiclesService, Depends(get_vehicles_service)]
 
 
 def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepository:
