@@ -30,9 +30,5 @@ class AbstractRepository(ABC, Generic[T]):
         raise NotImplementedError
 
     @abstractmethod
-    async def starts_with(self, atr_name: str, prefix: str, case_sensitive: bool = False) -> list[T]:
-        raise NotImplementedError
-
-    @abstractmethod
     async def exists(self, **filters) -> bool:
         raise NotImplementedError
