@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Query, status, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Query
 from typing import Annotated
-from src.dependencies import AsyncSessionDep
-from src.ranges.model import Range
-from .model import Generation
+from src.dependencies import CurrentOwnerDep, GenerationsServiceDep
 from .schemas import GenerationRead
 
 router = APIRouter(
@@ -12,13 +9,20 @@ router = APIRouter(
 )
 
 
-@router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of generations')
+@router.get(
+    '',
+    responses={
+        200: {'description': 'Generations successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Range not found'}
+    },
+    summary='Return a list of generations by range id'
+)
 async def get_generations(
-        range_id: Annotated[int, Query(gt=0, alias='range-id')], async_session: AsyncSessionDep
+        current_owner: CurrentOwnerDep,
+        range_id: Annotated[int, Query(gt=0, alias='range-id')],
+        generations_service: GenerationsServiceDep
 ) -> list[GenerationRead]:
-    """Return a list of all vehicle generations for the vehicles model range with the specified id."""
-    _range = await async_session.get(Range, range_id)
-    if not _range:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vehicles model range not found.')
-    result = await async_session.execute(select(Generation).where(Generation.range_id == range_id))
-    return result.scalars()
+    generations = await generations_service.get_generations(range_id)
+    return generations

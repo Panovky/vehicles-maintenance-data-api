@@ -114,6 +114,14 @@ class ModelNotFoundException(HTTPException):
         )
 
 
+class RangeNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Модельный ряд автомобилей с указанным id не найден.'
+        )
+
+
 class VehicleNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(

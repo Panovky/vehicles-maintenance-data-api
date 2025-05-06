@@ -20,6 +20,7 @@ from src.models.service import ModelsService
 from src.ranges.repository import RangesRepository
 from src.ranges.service import RangesService
 from src.generations.repository import GenerationsRepository
+from src.generations.service import GenerationsService
 from src.configurations.repository import ConfigurationsRepository
 from src.scrapers.service import DromScraperService
 
@@ -172,6 +173,16 @@ RangesServiceDep = Annotated[RangesService, Depends(get_ranges_service)]
 
 def get_generations_repository(async_session: AsyncSessionDep) -> GenerationsRepository:
     return GenerationsRepository(async_session)
+
+
+def get_generations_service(
+        ranges_repository: Annotated[RangesRepository, Depends(get_ranges_repository)],
+        generations_repository: Annotated[GenerationsRepository, Depends(get_generations_repository)]
+) -> GenerationsService:
+    return GenerationsService(ranges_repository, generations_repository)
+
+
+GenerationsServiceDep = Annotated[GenerationsService, Depends(get_generations_service)]
 
 
 def get_configurations_repository(async_session: AsyncSessionDep) -> ConfigurationsRepository:
