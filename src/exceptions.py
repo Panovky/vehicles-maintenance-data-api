@@ -122,6 +122,14 @@ class RangeNotFoundException(HTTPException):
         )
 
 
+class GenerationNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Поколение автомобилей с указанным id не найдено.'
+        )
+
+
 class VehicleNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
