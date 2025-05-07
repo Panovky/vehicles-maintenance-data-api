@@ -7,8 +7,9 @@ from src.models.routes import router as models_router
 from src.ranges.routes import router as ranges_router
 from src.generations.routes import router as generations_router
 from src.configurations.routes import router as configurations_router
+from src.scrapers.routes import router as scrapers_router
+from src.vehicles.routes import router as vehicles_router
 from src.services.routes import router as services_router
-from src.scrapers.routes import router as scrape_router
 
 app = FastAPI(strict_slashes=False)
 
@@ -28,5 +29,6 @@ app.include_router(models_router)
 app.include_router(ranges_router)
 app.include_router(generations_router)
 app.include_router(configurations_router)
+app.include_router(scrapers_router)
+app.include_router(vehicles_router)
 app.include_router(services_router)
-app.include_router(scrape_router)
