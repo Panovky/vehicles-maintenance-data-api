@@ -9,8 +9,6 @@ from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.service import UsersService, UserRolesService
 from src.users.schemas import UserRead
 from src.auth.service import AuthService
-from src.vehicles.repository import VehiclesRepository
-from src.vehicles.service import VehiclesService
 from src.services.repository import ServicesRepository
 from src.services.service import ServicesService
 from src.makes.repository import MakesRepository
@@ -24,6 +22,8 @@ from src.generations.service import GenerationsService
 from src.configurations.repository import ConfigurationsRepository
 from src.configurations.service import ConfigurationsService
 from src.scrapers.service import DromScraperService
+from src.vehicles.repository import VehiclesRepository
+from src.vehicles.service import VehiclesService
 
 
 async def get_async_session() -> AsyncSession:
@@ -38,7 +38,10 @@ def get_users_repository(async_session: AsyncSessionDep) -> UsersRepository:
     return UsersRepository(async_session)
 
 
-def get_users_service(users_repository: Annotated[UsersRepository, Depends(get_users_repository)]) -> UsersService:
+UsersRepositoryDep = Annotated[UsersRepository, Depends(get_users_repository)]
+
+
+def get_users_service(users_repository: UsersRepositoryDep) -> UsersService:
     return UsersService(users_repository)
 
 
@@ -49,9 +52,10 @@ def get_user_roles_repository(async_session: AsyncSessionDep) -> UserRolesReposi
     return UserRolesRepository(async_session)
 
 
-def get_user_roles_service(
-        user_roles_repository: Annotated[UserRolesRepository, Depends(get_user_roles_repository)]
-) -> UserRolesService:
+UserRolesRepositoryDep = Annotated[UserRolesRepository, Depends(get_user_roles_repository)]
+
+
+def get_user_roles_service(user_roles_repository: UserRolesRepositoryDep) -> UserRolesService:
     return UserRolesService(user_roles_repository)
 
 
@@ -59,8 +63,7 @@ UserRolesServiceDep = Annotated[UserRolesService, Depends(get_user_roles_service
 
 
 def get_auth_service(
-        users_repository: Annotated[UsersRepository, Depends(get_users_repository)],
-        user_roles_repository: Annotated[UserRolesRepository, Depends(get_user_roles_repository)]
+        users_repository: UsersRepositoryDep, user_roles_repository: UserRolesRepositoryDep
 ) -> AuthService:
     return AuthService(users_repository, user_roles_repository)
 
@@ -72,18 +75,17 @@ def get_auth_header() -> HTTPBearer:
     return HTTPBearer()
 
 
-async def get_current_user_by_access_token(
-    auth_header: Annotated[str, Depends(get_auth_header())], auth_service: AuthServiceDep
-) -> UserRead:
+AuthHeaderDep = Annotated[str, Depends(get_auth_header())]
+
+
+async def get_current_user_by_access_token(auth_header: AuthHeaderDep, auth_service: AuthServiceDep) -> UserRead:
     return await auth_service.get_current_user_by_token(token=auth_header.credentials, token_type='access')
 
 
 CurrentUserByAccessTokenDep = Annotated[UserRead, Depends(get_current_user_by_access_token)]
 
 
-async def get_current_user_by_refresh_token(
-    auth_header: Annotated[str, Depends(get_auth_header())], auth_service: AuthServiceDep
-) -> UserRead:
+async def get_current_user_by_refresh_token(auth_header: AuthHeaderDep, auth_service: AuthServiceDep) -> UserRead:
     return await auth_service.get_current_user_by_token(token=auth_header.credentials, token_type='refresh')
 
 
@@ -107,37 +109,14 @@ CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum
 CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
 
 
-def get_vehicles_repository(async_session: AsyncSessionDep) -> VehiclesRepository:
-    return VehiclesRepository(async_session)
-
-
-def get_vehicles_service(
-        vehicles_repository: Annotated[VehiclesRepository, Depends(get_vehicles_repository)]
-) -> VehiclesService:
-    return VehiclesService(vehicles_repository)
-
-
-VehiclesServiceDep = Annotated[VehiclesService, Depends(get_vehicles_service)]
-
-
-def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepository:
-    return ServicesRepository(async_session)
-
-
-def get_services_service(
-        services_repository: Annotated[ServicesRepository, Depends(get_services_repository)]
-) -> ServicesService:
-    return ServicesService(services_repository)
-
-
-ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
-
-
 def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
     return MakesRepository(async_session)
 
 
-def get_makes_service(makes_repository: Annotated[MakesRepository, Depends(get_makes_repository)]) -> MakesService:
+MakesRepositoryDep = Annotated[MakesRepository, Depends(get_makes_repository)]
+
+
+def get_makes_service(makes_repository: MakesRepositoryDep) -> MakesService:
     return MakesService(makes_repository)
 
 
@@ -148,10 +127,10 @@ def get_models_repository(async_session: AsyncSessionDep) -> ModelsRepository:
     return ModelsRepository(async_session)
 
 
-def get_models_service(
-        makes_repository: Annotated[MakesRepository, Depends(get_makes_repository)],
-        models_repository: Annotated[ModelsRepository, Depends(get_models_repository)]
-) -> ModelsService:
+ModelsRepositoryDep = Annotated[ModelsRepository, Depends(get_models_repository)]
+
+
+def get_models_service(makes_repository: MakesRepositoryDep, models_repository: ModelsRepositoryDep) -> ModelsService:
     return ModelsService(makes_repository, models_repository)
 
 
@@ -162,10 +141,10 @@ def get_ranges_repository(async_session: AsyncSessionDep) -> RangesRepository:
     return RangesRepository(async_session)
 
 
-def get_ranges_service(
-        models_repository: Annotated[ModelsRepository, Depends(get_models_repository)],
-        ranges_repository: Annotated[RangesRepository, Depends(get_ranges_repository)]
-) -> RangesService:
+RangesRepositoryDep = Annotated[RangesRepository, Depends(get_ranges_repository)]
+
+
+def get_ranges_service(models_repository: ModelsRepositoryDep, ranges_repository: RangesRepositoryDep) -> RangesService:
     return RangesService(models_repository, ranges_repository)
 
 
@@ -176,9 +155,12 @@ def get_generations_repository(async_session: AsyncSessionDep) -> GenerationsRep
     return GenerationsRepository(async_session)
 
 
+GenerationsRepositoryDep = Annotated[GenerationsRepository, Depends(get_generations_repository)]
+
+
 def get_generations_service(
-        ranges_repository: Annotated[RangesRepository, Depends(get_ranges_repository)],
-        generations_repository: Annotated[GenerationsRepository, Depends(get_generations_repository)]
+        ranges_repository: RangesRepositoryDep,
+        generations_repository: GenerationsRepositoryDep
 ) -> GenerationsService:
     return GenerationsService(ranges_repository, generations_repository)
 
@@ -190,9 +172,12 @@ def get_configurations_repository(async_session: AsyncSessionDep) -> Configurati
     return ConfigurationsRepository(async_session)
 
 
+ConfigurationsRepositoryDep = Annotated[ConfigurationsRepository, Depends(get_configurations_repository)]
+
+
 def get_configurations_service(
-        generations_repository: Annotated[GenerationsRepository, Depends(get_generations_repository)],
-        configurations_repository: Annotated[ConfigurationsRepository, Depends(get_configurations_repository)],
+        generations_repository: GenerationsRepositoryDep,
+        configurations_repository: ConfigurationsRepositoryDep,
 ) -> ConfigurationsService:
     return ConfigurationsService(generations_repository, configurations_repository)
 
@@ -201,11 +186,11 @@ ConfigurationsServiceDep = Annotated[ConfigurationsService, Depends(get_configur
 
 
 def get_drom_scraper_service(
-        makes_repository: Annotated[MakesRepository, Depends(get_makes_repository)],
-        models_repository: Annotated[ModelsRepository, Depends(get_models_repository)],
-        ranges_repository: Annotated[RangesRepository, Depends(get_ranges_repository)],
-        generations_repository: Annotated[GenerationsRepository, Depends(get_generations_repository)],
-        configurations_repository: Annotated[ConfigurationsRepository, Depends(get_configurations_repository)]
+        makes_repository: MakesRepositoryDep,
+        models_repository: ModelsRepositoryDep,
+        ranges_repository: RangesRepositoryDep,
+        generations_repository: GenerationsRepositoryDep,
+        configurations_repository: ConfigurationsRepositoryDep
 ) -> DromScraperService:
     return DromScraperService(
         makes_repository, models_repository, ranges_repository, generations_repository, configurations_repository
@@ -213,3 +198,45 @@ def get_drom_scraper_service(
 
 
 DromScraperServiceDep = Annotated[DromScraperService, Depends(get_drom_scraper_service)]
+
+
+def get_vehicles_repository(async_session: AsyncSessionDep) -> VehiclesRepository:
+    return VehiclesRepository(async_session)
+
+
+VehiclesRepositoryDep = Annotated[VehiclesRepository, Depends(get_vehicles_repository)]
+
+
+def get_vehicles_service(
+        makes_repository: MakesRepositoryDep,
+        models_repository: ModelsRepositoryDep,
+        ranges_repository: RangesRepositoryDep,
+        generations_repository: GenerationsRepositoryDep,
+        configurations_repository: ConfigurationsRepositoryDep,
+        vehicles_repository: VehiclesRepositoryDep
+) -> VehiclesService:
+    return VehiclesService(
+        makes_repository,
+        models_repository,
+        ranges_repository,
+        generations_repository,
+        configurations_repository,
+        vehicles_repository
+    )
+
+
+VehiclesServiceDep = Annotated[VehiclesService, Depends(get_vehicles_service)]
+
+
+def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepository:
+    return ServicesRepository(async_session)
+
+
+ServicesServiceDep = Annotated[ServicesRepository, Depends(get_services_repository)]
+
+
+def get_services_service(services_repository: ServicesServiceDep) -> ServicesService:
+    return ServicesService(services_repository)
+
+
+ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
