@@ -130,6 +130,14 @@ class GenerationNotFoundException(HTTPException):
         )
 
 
+class ConfigurationNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Конфигурация автомобиля с указанным id не найдена.'
+        )
+
+
 class VehicleNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
@@ -142,13 +150,13 @@ class VINIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail='Vehicle with the same VIN already exists.'
+            detail='Автомобиль с таким VIN уже существует в системе.'
         )
 
 
-class RegistrationNumberIsNotUniqueException(HTTPException):
+class RegistrationPlateIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail='Vehicle with the same registration number already exists.'
+            detail='Автомобиль с таким регистрационным знаком уже существует в системе.'
         )
