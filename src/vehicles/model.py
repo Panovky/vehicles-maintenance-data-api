@@ -27,6 +27,7 @@ class Vehicle(Base):
     __tablename__ = 'vehicles'
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
+    photo_path: Mapped[str] = mapped_column(String(255), nullable=True, default=None)
     make_id: Mapped[int] = mapped_column(Integer, ForeignKey('makes.id'))
     model_id: Mapped[int] = mapped_column(Integer, ForeignKey('models.id'))
     range_id: Mapped[int] = mapped_column(Integer, ForeignKey('ranges.id'))
