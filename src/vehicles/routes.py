@@ -1,6 +1,7 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Form, UploadFile, File
+from typing import Annotated
 from src.dependencies import CurrentOwnerDep, VehiclesServiceDep
-from .schemas import VehicleRead, VehicleCreate
+from .schemas import VehicleColorEnum, VehicleRead
 
 router = APIRouter(
     prefix='/vehicles',
@@ -21,7 +22,34 @@ router = APIRouter(
     summary='Create the vehicle by current owner'
 )
 async def create_vehicle(
-        current_owner: CurrentOwnerDep, data: VehicleCreate, vehicles_service: VehiclesServiceDep
+        current_owner: CurrentOwnerDep,
+        make_id: Annotated[int, Form(gt=0)],
+        model_id: Annotated[int, Form(gt=0)],
+        range_id: Annotated[int, Form(gt=0)],
+        generation_id: Annotated[int, Form(gt=0)],
+        configuration_id: Annotated[int, Form(gt=0)],
+        color: Annotated[VehicleColorEnum, Form()],
+        manufacture_year: Annotated[int, Form(ge=1900)],
+        mileage: Annotated[int, Form(ge=0)],
+        vin: Annotated[str, Form(pattern='^[A-HJ-NPR-Z0-9]{17}$')],
+        registration_plate: Annotated[str, Form(pattern='^[ABEKMHOPCTYX]{1}[0-9]{3}[ABEKMHOPCTYX]{2}[0-9]{2,3}$')],
+        vehicles_service: VehiclesServiceDep,
+        photo: Annotated[UploadFile | None, File()] = None
 ) -> VehicleRead:
-    vehicle = await vehicles_service.create(data, current_owner.id)
+    vehicle = await vehicles_service.create(
+        {
+            'make_id': make_id,
+            'model_id': model_id,
+            'range_id': range_id,
+            'generation_id': generation_id,
+            'configuration_id': configuration_id,
+            'color': color,
+            'manufacture_year': manufacture_year,
+            'mileage': mileage,
+            'vin': vin,
+            'registration_plate': registration_plate
+        },
+        photo,
+        current_owner.id
+    )
     return vehicle
