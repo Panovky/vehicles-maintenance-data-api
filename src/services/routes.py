@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Path
-from src.dependencies import CurrentUserByAccessTokenDep, ServicesServiceDep
-from .schemas import ServiceRead
+from fastapi import APIRouter, Path, status
+from src.dependencies import CurrentManagerDep, CurrentUserByAccessTokenDep, ServicesServiceDep
+from .schemas import ServiceCreate, ServiceRead
 from typing import Annotated
 
 router = APIRouter(
@@ -43,3 +43,20 @@ async def get_services(
 ) -> list[ServiceRead]:
     services = await services_service.get_all()
     return services
+
+
+@router.post(
+    '',
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {'description': 'Service successfully created'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Create the service by current manager'
+)
+async def create_service(
+        current_manager: CurrentManagerDep, data: ServiceCreate, services_service: ServicesServiceDep
+) -> ServiceRead:
+    service = await services_service.create(data, current_manager.id)
+    return service

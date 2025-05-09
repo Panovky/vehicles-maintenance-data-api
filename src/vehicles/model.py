@@ -27,6 +27,7 @@ class Vehicle(Base):
     __tablename__ = 'vehicles'
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
+    photo_path: Mapped[str] = mapped_column(String(255), nullable=True, default=None)
     make_id: Mapped[int] = mapped_column(Integer, ForeignKey('makes.id'))
     model_id: Mapped[int] = mapped_column(Integer, ForeignKey('models.id'))
     range_id: Mapped[int] = mapped_column(Integer, ForeignKey('ranges.id'))
@@ -38,7 +39,7 @@ class Vehicle(Base):
     manufacture_year: Mapped[int] = mapped_column(Integer, nullable=False)
     mileage: Mapped[int] = mapped_column(Integer, nullable=False)
     vin: Mapped[str] = mapped_column(String(17), nullable=False, unique=True)
-    registration_number: Mapped[str] = mapped_column(String(9), nullable=False, unique=True)
+    registration_plate: Mapped[str] = mapped_column(String(9), nullable=False, unique=True)
 
     make = relationship('Make', back_populates='vehicles')
     model = relationship('Model', back_populates='vehicles')

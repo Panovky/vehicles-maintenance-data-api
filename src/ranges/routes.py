@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Query, status, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Query
 from typing import Annotated
-from src.dependencies import AsyncSessionDep
-from src.models.model import Model
-from .model import Range
+from src.dependencies import CurrentOwnerDep, RangesServiceDep
 from .schemas import RangeRead
 
 router = APIRouter(
@@ -12,13 +9,20 @@ router = APIRouter(
 )
 
 
-@router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of ranges')
+@router.get(
+    '',
+    responses={
+        200: {'description': 'Ranges successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Model not found'}
+    },
+    summary='Get a list of ranges by model id'
+)
 async def get_ranges(
-        model_id: Annotated[int, Query(gt=0, alias='model-id')], async_session: AsyncSessionDep
+        current_owner: CurrentOwnerDep,
+        model_id: Annotated[int, Query(gt=0, alias='model-id')],
+        ranges_service: RangesServiceDep
 ) -> list[RangeRead]:
-    """Return a list of all vehicles model ranges for the vehicle model with the specified id."""
-    model = await async_session.get(Model, model_id)
-    if not model:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vehicle model not found.')
-    result = await async_session.execute(select(Range).where(Range.model_id == model_id))
-    return result.scalars()
+    ranges = await ranges_service.get_ranges(model_id)
+    return ranges

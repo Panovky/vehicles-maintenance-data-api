@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Query, status, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Query
 from typing import Annotated
-from src.dependencies import AsyncSessionDep
-from src.generations.model import Generation
-from .model import Configuration
+from src.dependencies import CurrentOwnerDep, ConfigurationsServiceDep
 from .schemas import ConfigurationRead
 
 router = APIRouter(
@@ -12,15 +9,20 @@ router = APIRouter(
 )
 
 
-@router.get('/', status_code=status.HTTP_200_OK, summary='Return a list of configurations')
+@router.get(
+    '',
+    responses={
+        200: {'description': 'Configurations successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Generation not found'}
+    },
+    summary='Return a list of configurations by generation id'
+)
 async def get_configurations(
-        generation_id: Annotated[int, Query(gt=0, alias='generation-id')], async_session: AsyncSessionDep
+        current_owner: CurrentOwnerDep,
+        generation_id: Annotated[int, Query(gt=0, alias='generation-id')],
+        configurations_service: ConfigurationsServiceDep
 ) -> list[ConfigurationRead]:
-    """Return a list of all vehicle configurations for the vehicle generation with the specified id."""
-    generation = await async_session.get(Generation, generation_id)
-    if not generation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Vehicle generation not found.')
-    result = await async_session.execute(
-        select(Configuration).where(Configuration.generation_id == generation_id)
-    )
-    return result.scalars()
+    configurations = await configurations_service.get_configurations(generation_id)
+    return configurations

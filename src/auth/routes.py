@@ -49,7 +49,7 @@ async def login(data: UserLogin, auth_service: AuthServiceDep) -> TokenRead:
 
 
 @router.post(
-    '/refresh',
+    '/refresh-access-token',
     responses={
         200: {'description': 'Access token successfully received'},
         401: {'description': 'Refresh token are invalid'}
