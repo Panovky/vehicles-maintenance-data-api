@@ -98,6 +98,22 @@ class ServiceNotFoundException(HTTPException):
         )
 
 
+class ServiceINNIsNotUniqueException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Автосервис с указанным ИНН уже существует в системе.'
+        )
+
+
+class ServiceOGRNIsNotUniqueException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Автосервис с указанным ОГРН (ОГРНИП) уже существует в системе.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(

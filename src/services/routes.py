@@ -51,7 +51,8 @@ async def get_services(
     responses={
         201: {'description': 'Service successfully created'},
         401: {'description': 'Access token are invalid'},
-        403: {'description': 'Access for current user denied'}
+        403: {'description': 'Access for current user denied'},
+        409: {'description': 'INN or OGRN is not unique'}
     },
     summary='Create the service by current manager'
 )
