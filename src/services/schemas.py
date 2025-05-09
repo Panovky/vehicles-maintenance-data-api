@@ -10,35 +10,28 @@ class ServiceRead(BaseModel):
     id: Annotated[int, Field(example=1)]
     created_at: datetime
     updated_at: datetime
-    name: Annotated[str, Field(example='LeCar Service')]
-    address: Annotated[str, Field(example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б')]
+    name: Annotated[str, Field(example='ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "РЕСУРС-А"')]
+    inn: Annotated[str, Field(example='7604394801')]
+    ogrn: Annotated[str, Field(example='1237600011571')]
+    address: Annotated[str, Field(example='Ярославская область, г. Ярославль, ул. Нефтяников, 17А')]
     summary: Annotated[str | None, Field(example='Сервис по ремонту авто любой сложности.')]
-    timetable: Annotated[str, Field(example='Ежедневно с 08:00 до 20:00')]
-    website: Annotated[str | None, Field(example='https://yaroslavl.lecar.ru/')]
+    timetable: Annotated[str, Field(example='Пн-Пт - 8:00-20:00\nСб, Вс - 9:00-18:00\nРаботаем без выходных')]
+    website: Annotated[str | None, Field(example='https://bestway76.ru/')]
     manager_id: Annotated[int, Field(example=1)]
 
 
 class ServiceCreate(BaseModel):
     """The model representing the service data needed to create record in the database."""
-    name: Annotated[str, Field(max_length=255, example='LeCar Service')]
-    address: Annotated[str, Field(
-        max_length=255, example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б'
-    )]
-    summary: Annotated[str | None, Field(
-        max_length=500, default=None, example='Сервис по ремонту авто любой сложности.'
-    )]
-    timetable: Annotated[str, Field(max_length=255, example='Ежедневно с 08:00 до 20:00')]
-    website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
-
-
-# class ServiceUpdate(BaseModel):
-#     """The model representing the service data needed to update information in the database."""
-#     name: Annotated[str | None, Field(max_length=255, default=None, example='LeCar Service')]
-#     address: Annotated[str | None, Field(
-#         max_length=255, default=None, example='г. Ярославль, р-н Красноперекопский, Московский проспект, д. 110, к. Б'
-#     )]
-#     summary: Annotated[str | None, Field(
-#         max_length=500, default=None, example='Сервис по ремонту авто любой сложности.'
-#     )]
-#     timetable: Annotated[str | None, Field(max_length=255, default=None, example='Ежедневно с 08:00 до 20:00')]
-#     website: Annotated[str | None, Field(max_length=255, default=None, example='https://yaroslavl.lecar.ru/')]
+    name: Annotated[str, Field(max_length=255, example='ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "РЕСУРС-А"')]
+    inn: Annotated[str, Field(example='7604394801')]
+    ogrn: Annotated[str, Field(example='1237600011571')]
+    address: Annotated[str, Field(max_length=255, example='Ярославская область, г. Ярославль, ул. Нефтяников, 17А')]
+    summary: Annotated[
+        str | None,
+        Field(max_length=500, default=None, example='Сервис по ремонту авто любой сложности.')
+    ]
+    timetable: Annotated[
+        str,
+        Field(max_length=255, example='Пн-Пт - 8:00-20:00 Сб, Вс - 9:00-18:00 Работаем без выходных')
+    ]
+    website: Annotated[str | None, Field(max_length=255, default=None, example='https://bestway76.ru/')]
