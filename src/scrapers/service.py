@@ -8,7 +8,8 @@ from src.models.repository import ModelsRepository
 from src.ranges.repository import RangesRepository
 from src.generations.repository import GenerationsRepository
 from src.configurations.repository import ConfigurationsRepository
-from .schemas import UnhandledDromResponseErrorsRead, UnhandledDromResponseErrorRead
+from src.exceptions import UnhandledEgrulEgripResponseException, ServiceInnNotFoundInEgrulEgripException
+from .schemas import UnhandledDromResponseErrorsRead, UnhandledDromResponseErrorRead, ServiceFromEgrulEgripRead
 
 
 class DromScraperService:
@@ -212,3 +213,30 @@ class DromScraperService:
         unhandled_errors = await self.scrape_makes('https://www.drom.ru/catalog/')
         unhandled_errors += await self.scrape_makes('https://www.drom.ru/catalog/lcv/')
         return UnhandledDromResponseErrorsRead(unhandled_errors=unhandled_errors)
+
+
+class EgrulEgripScraperService:
+    @staticmethod
+    def scrape_name_and_ogrn(inn: str) -> ServiceFromEgrulEgripRead:
+        base_url = 'https://egrul.nalog.ru'
+
+        response = requests.post(base_url, data={'query': inn})
+        if not 200 <= response.status_code <= 299 or not (token := response.json().get('t')):
+            raise UnhandledEgrulEgripResponseException(detail='Ошибка при получении токена по ИНН.')
+
+        search_url = f'{base_url}/search-result/{token}'
+        response = requests.get(search_url)
+        if not 200 <= response.status_code <= 299 or not (records := response.json().get('rows')):
+            raise UnhandledEgrulEgripResponseException(
+                detail='Ошибка при получении списка записей из ЕГРЮЛ или ЕГРИП по токену.'
+            )
+
+        if len(records) == 0 or not (fresh_record := records[0]).get('n'):
+            raise ServiceInnNotFoundInEgrulEgripException()
+
+        return ServiceFromEgrulEgripRead(
+            name=fresh_record['n'],
+            ogrn=fresh_record['o'],
+            is_working=True if 'e' not in fresh_record else False
+        )
+

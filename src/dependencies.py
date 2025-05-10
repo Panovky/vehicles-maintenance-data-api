@@ -21,7 +21,7 @@ from src.generations.repository import GenerationsRepository
 from src.generations.service import GenerationsService
 from src.configurations.repository import ConfigurationsRepository
 from src.configurations.service import ConfigurationsService
-from src.scrapers.service import DromScraperService
+from src.scrapers.service import DromScraperService, EgrulEgripScraperService
 from src.vehicles.repository import VehiclesRepository
 from src.vehicles.service import VehiclesService
 
@@ -198,6 +198,13 @@ def get_drom_scraper_service(
 
 
 DromScraperServiceDep = Annotated[DromScraperService, Depends(get_drom_scraper_service)]
+
+
+def get_egrul_egrip_scraper_service() -> EgrulEgripScraperService:
+    return EgrulEgripScraperService()
+
+
+EgrulEgripScraperServiceDep = Annotated[EgrulEgripScraperService, Depends(get_egrul_egrip_scraper_service)]
 
 
 def get_vehicles_repository(async_session: AsyncSessionDep) -> VehiclesRepository:
