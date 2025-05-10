@@ -221,17 +221,18 @@ class EgrulEgripScraperService:
         base_url = 'https://egrul.nalog.ru'
 
         response = requests.post(base_url, data={'query': inn})
-        if not 200 <= response.status_code <= 299 or not (token := response.json().get('t')):
+        if not 200 <= response.status_code <= 299 or 't' not in (json := response.json()):
             raise UnhandledEgrulEgripResponseException(detail='Ошибка при получении токена по ИНН.')
 
-        search_url = f'{base_url}/search-result/{token}'
+        search_url = f'{base_url}/search-result/{json["t"]}'
         response = requests.get(search_url)
-        if not 200 <= response.status_code <= 299 or not (records := response.json().get('rows')):
+        if not 200 <= response.status_code <= 299 or 'rows' not in (json := response.json()):
             raise UnhandledEgrulEgripResponseException(
                 detail='Ошибка при получении списка записей из ЕГРЮЛ или ЕГРИП по токену.'
             )
 
-        if len(records) == 0 or not (fresh_record := records[0]).get('n'):
+        records = json['rows']
+        if len(records) == 0 or 'n' not in (fresh_record := records[0]):
             raise ServiceInnNotFoundInEgrulEgripException()
 
         return ServiceFromEgrulEgripRead(
