@@ -23,8 +23,8 @@ class ServiceRead(BaseModel):
 class ServiceCreate(BaseModel):
     """The model representing the service data needed to create record in the database."""
     name: Annotated[str, Field(max_length=255, example='ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "РЕСУРС-А"')]
-    inn: Annotated[str, Field(example='7604394801')]
-    ogrn: Annotated[str, Field(example='1237600011571')]
+    inn: Annotated[str, Field(pattern=r'^\d{10}$|^\d{12}$', example='7604394801')]
+    ogrn: Annotated[str, Field(pattern=r'^\d{13}$|^\d{15}$', example='1237600011571')]
     address: Annotated[str, Field(max_length=255, example='Ярославская область, г. Ярославль, ул. Нефтяников, 17А')]
     summary: Annotated[
         str | None,
