@@ -13,3 +13,10 @@ class UnhandledDromResponseErrorRead(BaseModel):
 class UnhandledDromResponseErrorsRead(BaseModel):
     """The model describes the response to a request for data scraping from drom.ru."""
     unhandled_errors: list[UnhandledDromResponseErrorRead]
+
+
+class ServiceFromEgrulEgripRead(BaseModel):
+    """The model describes the vehicle service data that is scraped from the EGRUL or EGRIP by its INN."""
+    name: Annotated[str, Field(example='ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "РЕСУРС-А"')]
+    ogrn: Annotated[str, Field(example='1237600011571')]
+    is_working: bool
