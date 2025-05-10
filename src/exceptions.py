@@ -98,7 +98,7 @@ class ServiceNotFoundException(HTTPException):
         )
 
 
-class ServiceINNIsNotUniqueException(HTTPException):
+class ServiceInnIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
@@ -106,11 +106,19 @@ class ServiceINNIsNotUniqueException(HTTPException):
         )
 
 
-class ServiceOGRNIsNotUniqueException(HTTPException):
+class ServiceOgrnIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
             detail='Автосервис с указанным ОГРН (ОГРНИП) уже существует в системе.'
+        )
+
+
+class ServiceInnNotFoundInEgrulEgripException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Записей в ЕГРЮЛ и ЕГРИП с указанным ИНН не найдено.'
         )
 
 
@@ -154,15 +162,7 @@ class ConfigurationNotFoundException(HTTPException):
         )
 
 
-class VehicleNotFoundException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Vehicle not found.'
-        )
-
-
-class VINIsNotUniqueException(HTTPException):
+class VinIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,

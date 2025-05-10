@@ -1,4 +1,4 @@
-from src.exceptions import ServiceNotFoundException, ServiceINNIsNotUniqueException, ServiceOGRNIsNotUniqueException
+from src.exceptions import ServiceNotFoundException, ServiceInnIsNotUniqueException, ServiceOgrnIsNotUniqueException
 from .repository import ServicesRepository
 from .schemas import ServiceCreate, ServiceRead
 
@@ -9,10 +9,10 @@ class ServicesService:
 
     async def create(self, data: ServiceCreate, manager_id: int) -> ServiceRead:
         if await self.repository.exists(inn=data.inn):
-            raise ServiceINNIsNotUniqueException()
+            raise ServiceInnIsNotUniqueException()
 
         if await self.repository.exists(ogrn=data.ogrn):
-            raise ServiceOGRNIsNotUniqueException()
+            raise ServiceOgrnIsNotUniqueException()
 
         data_dict = data.model_dump()
         data_dict['manager_id'] = manager_id
