@@ -8,7 +8,7 @@ from src.generations.repository import GenerationsRepository
 from src.configurations.repository import ConfigurationsRepository
 from src.exceptions import (
     MakeNotFoundException, ModelNotFoundException, RangeNotFoundException, GenerationNotFoundException,
-    ConfigurationNotFoundException, VINIsNotUniqueException, RegistrationPlateIsNotUniqueException
+    ConfigurationNotFoundException, VinIsNotUniqueException, RegistrationPlateIsNotUniqueException
 )
 from src.config import VEHICLES_PHOTOS_DIR
 from .repository import VehiclesRepository
@@ -49,7 +49,7 @@ class VehiclesService:
             raise ConfigurationNotFoundException()
 
         if await self.vehicles_repository.exists(vin=data['vin']):
-            raise VINIsNotUniqueException()
+            raise VinIsNotUniqueException()
 
         if await self.vehicles_repository.exists(registration_plate=data['registration_plate']):
             raise RegistrationPlateIsNotUniqueException()
