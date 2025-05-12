@@ -26,22 +26,6 @@ class UserPhoneIsNotUniqueException(HTTPException):
         )
 
 
-class ExpiredVerifyEmailTokenException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_410_GONE,
-            detail='Ссылка для подтверждения email устарела. Необходима повторная отправка письма.'
-        )
-
-
-class InvalidVerifyEmailTokenException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Неверный токен для подтверждения email.'
-        )
-
-
 class InvalidUserCredentialsException(HTTPException):
     def __init__(self):
         super().__init__(
