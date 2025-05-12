@@ -3,20 +3,20 @@ import jwt
 import os
 import smtplib
 import imaplib
+from fastapi.responses import RedirectResponse
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from imapclient import imap_utf7
 from datetime import timedelta, datetime
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from jwt.exceptions import InvalidTokenError
 from src.config import settings
 from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
-    ExpiredVerifyEmailTokenException, InvalidVerifyEmailTokenException, InvalidUserCredentialsException,
-    UserEmailIsNotVerifiedException, InvalidTokenException
+    InvalidUserCredentialsException, UserEmailIsNotVerifiedException, InvalidTokenException
 )
 from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.schemas import UserRead
+from src.users.schemas import UserRead, RoleEnum
 from .schemas import UserRegister, UserLogin, TokenRead
 
 
@@ -113,9 +113,9 @@ class AuthService:
             token_expire_minutes=settings.jwt_auth.refresh_token_expire_days * 24 * 60
         )
 
-    def get_verify_email_token(self, email: str) -> str:
+    def get_verify_email_token(self, email: str, role: str) -> str:
         return self.encode_jwt(
-            payload={'sub': email, 'type': 'verify_email'},
+            payload={'sub': email, 'role': role, 'type': 'verify_email'},
             token_expire_minutes=settings.jwt_auth.verify_email_token_expire_hours * 60
         )
 
@@ -137,7 +137,8 @@ class AuthService:
         await self.user_roles_repository.assign_role(user.id, data.role)
 
         name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        verify_email_url = f'http://localhost:8000/auth/verify-email?token={self.get_verify_email_token(user.email)}'
+        verify_email_token = self.get_verify_email_token(user.email, data.role.value)
+        verify_email_url = f'http://localhost:8000/auth/verify-email?token={verify_email_token}'
 
         self.send_email(
             receiver_address=user.email,
@@ -194,21 +195,23 @@ class AuthService:
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
 
-    async def verify_email(self, token: str) -> None:
+    async def verify_email(self, token: str) -> RedirectResponse:
         try:
             payload = self.decode_jwt(token=token)
-        except ExpiredSignatureError:
-            raise ExpiredVerifyEmailTokenException()
         except InvalidTokenError:
-            raise InvalidVerifyEmailTokenException()
+            return RedirectResponse(url='http://localhost:4173/register/invalid-token')
 
-        if payload.get('type') == 'verify_email':
-            if email := payload.get('sub'):
-                if user := await self.users_repository.get_by_email(email):
-                    await self.users_repository.update(user.id, {'is_email_verified': True})
-                    return
+        token_type = payload.get('type')
+        email = payload.get('sub')
+        role = payload.get('role')
 
-        raise InvalidVerifyEmailTokenException()
+        if token_type and token_type == 'verify_email' and email and role:
+            if user := await self.users_repository.get_by_email(email):
+                await self.users_repository.update(user.id, {'is_email_verified': True})
+                url = f'http://localhost:4173/{"vehicles" if role == RoleEnum.owner.value else "services"}/create'
+                return RedirectResponse(url=url)
+
+        return RedirectResponse(url='http://localhost:4173/register/invalid-token')
 
     async def login(self, data: UserLogin) -> TokenRead:
         user = await self.get_user_by_credentials(data)
