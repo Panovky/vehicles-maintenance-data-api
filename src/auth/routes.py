@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 from fastapi.responses import RedirectResponse
 from src.dependencies import AuthServiceDep, CurrentUserByRefreshTokenDep
-from .schemas import UserRegister, UserLogin, TokenRead
+from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTokenRead
 
 router = APIRouter(
     prefix='/auth',
@@ -15,9 +15,8 @@ router = APIRouter(
     responses={201: {'description': 'User successfully registered'}, 409: {'description': 'User data is not unique'}},
     summary='Register a user'
 )
-async def register(data: UserRegister, auth_service: AuthServiceDep) -> TokenRead:
-    access_token = await auth_service.register(data)
-    return access_token
+async def register(data: UserRegister, auth_service: AuthServiceDep) -> AccessRefreshTokensRead:
+    return await auth_service.register(data)
 
 
 @router.get('/verify-email', response_class=RedirectResponse, summary='Verify user email')
@@ -34,9 +33,8 @@ async def verify_email(token: str, auth_service: AuthServiceDep) -> RedirectResp
     },
     summary='Log in'
 )
-async def login(data: UserLogin, auth_service: AuthServiceDep) -> TokenRead:
-    access_token = await auth_service.login(data)
-    return access_token
+async def login(data: UserLogin, auth_service: AuthServiceDep) -> AccessRefreshTokensRead:
+    return await auth_service.login(data)
 
 
 @router.post(
@@ -45,9 +43,7 @@ async def login(data: UserLogin, auth_service: AuthServiceDep) -> TokenRead:
         200: {'description': 'Access token successfully received'},
         401: {'description': 'Refresh token are invalid'}
     },
-    response_model=TokenRead,
-    response_model_exclude_none=True,
     summary='Get access token by refresh token'
 )
-async def refresh(user: CurrentUserByRefreshTokenDep, auth_service: AuthServiceDep):
+async def refresh(user: CurrentUserByRefreshTokenDep, auth_service: AuthServiceDep) -> AccessTokenRead:
     return auth_service.refresh(user)

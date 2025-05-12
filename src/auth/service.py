@@ -17,7 +17,7 @@ from src.exceptions import (
 )
 from src.users.repository import UsersRepository, UserRolesRepository
 from src.users.schemas import UserRead, RoleEnum
-from .schemas import UserRegister, UserLogin, TokenRead
+from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTokenRead
 
 
 class AuthService:
@@ -119,7 +119,7 @@ class AuthService:
             token_expire_minutes=settings.jwt_auth.verify_email_token_expire_hours * 60
         )
 
-    async def register(self, data: UserRegister) -> TokenRead:
+    async def register(self, data: UserRegister) -> AccessRefreshTokensRead:
         if res := await self.users_repository.filter_by(email=data.email):
             if res[0].is_email_verified:
                 raise UserEmailIsNotUniqueException()
@@ -190,7 +190,7 @@ class AuthService:
             """
         )
 
-        return TokenRead(
+        return AccessRefreshTokensRead(
             access_token=self.get_access_token(user.id, user.email),
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
@@ -213,17 +213,16 @@ class AuthService:
 
         return RedirectResponse(url='http://localhost:4173/register/invalid-token')
 
-    async def login(self, data: UserLogin) -> TokenRead:
+    async def login(self, data: UserLogin) -> AccessRefreshTokensRead:
         user = await self.get_user_by_credentials(data)
 
-        return TokenRead(
+        return AccessRefreshTokensRead(
             access_token=self.get_access_token(user.id, user.email),
             refresh_token=self.get_refresh_token(user.id, user.email)
         )
 
-    def refresh(self, user: UserRead) -> TokenRead:
-        access_token = self.get_access_token(user.id, user.email)
-        return TokenRead(access_token=access_token)
+    def refresh(self, user: UserRead) -> AccessTokenRead:
+        return AccessTokenRead(access_token=self.get_access_token(user.id, user.email))
 
     async def get_current_user_by_token(self, token: str, token_type: str) -> UserRead:
         try:
