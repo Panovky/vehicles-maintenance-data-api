@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.auth.routes import router as auth_router
 from src.users.routes import router as users_router
+from src.user_roles.routes import router as user_roles_router
 from src.makes.routes import router as makes_router
 from src.models.routes import router as models_router
 from src.ranges.routes import router as ranges_router
@@ -26,6 +27,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(user_roles_router)
 app.include_router(makes_router)
 app.include_router(models_router)
 app.include_router(ranges_router)
