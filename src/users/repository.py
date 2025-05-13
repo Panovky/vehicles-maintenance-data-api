@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from src.utils.sqlalchemy_repository import SQLAlchemyRepository
-from .model import User, UserRole, RoleEnum
+from .model import User
 
 
 class UsersRepository(SQLAlchemyRepository):
@@ -13,15 +13,3 @@ class UsersRepository(SQLAlchemyRepository):
         stmt = select(User).where(User.email == email).options(joinedload(User.roles))
         user = await self.async_session.execute(stmt)
         return user.scalar()
-
-
-class UserRolesRepository(SQLAlchemyRepository):
-    def __init__(self, async_session: AsyncSession):
-        super().__init__(async_session, UserRole)
-
-    async def assign_role(self, user_id: int, role: RoleEnum) -> UserRole:
-        user_role = self.model(user_id=user_id, role=role)
-        self.async_session.add(user_role)
-        await self.async_session.commit()
-        await self.async_session.refresh(user_role)
-        return user_role
