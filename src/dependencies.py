@@ -4,10 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from src.database import async_session_maker
 from src.exceptions import AccessDeniedException
-from src.users.model import RoleEnum
-from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.service import UsersService, UserRolesService
+from src.users.repository import UsersRepository
+from src.users.service import UsersService
 from src.users.schemas import UserRead
+from src.user_roles.model import UserRoleEnum
+from src.user_roles.repository import UserRolesRepository
+from src.user_roles.service import UserRolesService
 from src.auth.service import AuthService
 from src.services.repository import ServicesRepository
 from src.services.service import ServicesService
@@ -92,7 +94,7 @@ async def get_current_user_by_refresh_token(auth_header: AuthHeaderDep, auth_ser
 CurrentUserByRefreshTokenDep = Annotated[UserRead, Depends(get_current_user_by_refresh_token)]
 
 
-def get_checker_user_roles(required_roles: list[RoleEnum]):
+def get_checker_user_roles(required_roles: list[UserRoleEnum]):
     def check_user_has_roles(current_user: CurrentUserByAccessTokenDep) -> UserRead:
         user_roles = [role for role in current_user.roles]
 
@@ -104,9 +106,9 @@ def get_checker_user_roles(required_roles: list[RoleEnum]):
     return check_user_has_roles
 
 
-CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.owner]))]
-CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.manager]))]
-CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
+CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner]))]
+CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.manager]))]
+CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.admin]))]
 
 
 def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
