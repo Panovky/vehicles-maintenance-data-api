@@ -1,7 +1,7 @@
 from datetime import date
 from sqlalchemy import Date, String, CHAR, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.utils.base_model import Base
+from src.core.base_model import Base
 
 
 class User(Base):

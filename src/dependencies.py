@@ -2,6 +2,7 @@ from fastapi import Depends
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
+from src.core.email_service import EmailService
 from src.database import async_session_maker
 from src.exceptions import AccessDeniedException
 from src.users.repository import UsersRepository
@@ -36,6 +37,13 @@ async def get_async_session() -> AsyncSession:
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
+def get_email_service() -> EmailService:
+    return EmailService()
+
+
+EmailServiceDep = Annotated[EmailService, Depends(get_email_service)]
+
+
 def get_users_repository(async_session: AsyncSessionDep) -> UsersRepository:
     return UsersRepository(async_session)
 
@@ -65,9 +73,11 @@ UserRolesServiceDep = Annotated[UserRolesService, Depends(get_user_roles_service
 
 
 def get_auth_service(
-        users_repository: UsersRepositoryDep, user_roles_repository: UserRolesRepositoryDep
+        users_repository: UsersRepositoryDep,
+        user_roles_repository: UserRolesRepositoryDep,
+        email_service: EmailServiceDep
 ) -> AuthService:
-    return AuthService(users_repository, user_roles_repository)
+    return AuthService(users_repository, user_roles_repository, email_service)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

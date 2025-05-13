@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import ForeignKey, Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.utils.base_model import Base
+from src.core.base_model import Base
 from src.ranges.model import Range
 
 

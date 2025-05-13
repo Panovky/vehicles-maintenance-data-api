@@ -1,13 +1,6 @@
 import bcrypt
 import jwt
-import os
-import smtplib
-import imaplib
 from fastapi.responses import RedirectResponse
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.header import Header
-from imapclient import imap_utf7
 from datetime import timedelta, datetime
 from jwt.exceptions import InvalidTokenError
 from src.config import settings
@@ -15,6 +8,7 @@ from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
     InvalidUserCredentialsException, UserEmailIsNotVerifiedException, InvalidTokenException
 )
+from src.core.email_service import EmailService
 from src.users.repository import UsersRepository
 from src.users.schemas import UserRead
 from src.user_roles.model import UserRoleEnum
@@ -23,42 +17,15 @@ from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTok
 
 
 class AuthService:
-    def __init__(self, users_repository: UsersRepository, user_roles_repository: UserRolesRepository):
+    def __init__(
+            self,
+            users_repository: UsersRepository,
+            user_roles_repository: UserRolesRepository,
+            email_service: EmailService
+    ):
         self.users_repository: UsersRepository = users_repository
         self.user_roles_repository: UserRolesRepository = user_roles_repository
-
-    @staticmethod
-    def send_email(receiver_address, subject, text, html):
-        sender_address = os.getenv('EMAIL_ADDRESS')
-        sender_app_password = os.getenv('EMAIL_APP_PASSWORD')
-        sender_smtp_server = os.getenv('EMAIL_SMTP_SERVER')
-        sender_imap_server = os.getenv('EMAIL_IMAP_SERVER')
-        sender_smtp_port = int(os.getenv('EMAIL_SMTP_PORT'))
-        sender_imap_port = int(os.getenv('EMAIL_IMAP_PORT'))
-
-        message = MIMEMultipart('alternative')
-        message['From'] = sender_address
-        message['To'] = receiver_address
-        message['Subject'] = Header(subject, 'utf-8')
-
-        part1 = MIMEText(text, 'plain')
-        part2 = MIMEText(html, 'html')
-        message.attach(part1)
-        message.attach(part2)
-
-        smtp = smtplib.SMTP_SSL(sender_smtp_server, sender_smtp_port)
-        smtp.login(sender_address, sender_app_password)
-        smtp.sendmail(sender_address, receiver_address, message.as_string())
-        smtp.quit()
-
-        imap = imaplib.IMAP4_SSL(sender_imap_server, sender_imap_port)
-        imap.login(sender_address, sender_app_password)
-        imap.append(
-            mailbox=str(imap_utf7.encode('Отправленные'))[2:-1],
-            flags=None,
-            date_time=None,
-            message=message.as_bytes())
-        imap.logout()
+        self.email_service: EmailService = email_service
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -142,7 +109,7 @@ class AuthService:
         verify_email_token = self.get_verify_email_token(user.email, data.role.value)
         verify_email_url = f'http://localhost:8000/auth/verify-email?token={verify_email_token}'
 
-        self.send_email(
+        self.email_service.send_email(
             receiver_address=user.email,
             subject='Завершение регистрации в приложении для управления данными о техническом обслуживании автомобилей',
             text=f"""

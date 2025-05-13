@@ -1,6 +1,6 @@
 from sqlalchemy import String, Integer, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-from src.utils.base_model import Base
+from src.core.base_model import Base
 
 
 class ServiceWorker(Base):
