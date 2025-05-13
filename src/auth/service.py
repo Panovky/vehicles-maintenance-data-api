@@ -15,8 +15,10 @@ from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
     InvalidUserCredentialsException, UserEmailIsNotVerifiedException, InvalidTokenException
 )
-from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.schemas import UserRead, RoleEnum
+from src.users.repository import UsersRepository
+from src.users.schemas import UserRead
+from src.user_roles.model import UserRoleEnum
+from src.user_roles.repository import UserRolesRepository
 from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTokenRead
 
 
@@ -208,7 +210,7 @@ class AuthService:
         if token_type and token_type == 'verify_email' and email and role:
             if user := await self.users_repository.get_by_email(email):
                 await self.users_repository.update(user.id, {'is_email_verified': True})
-                url = f'http://localhost:4173/{"vehicles" if role == RoleEnum.owner.value else "services"}/create'
+                url = f'http://localhost:4173/{"vehicles" if role == UserRoleEnum.owner.value else "services"}/create'
                 return RedirectResponse(url=url)
 
         return RedirectResponse(url='http://localhost:4173/register/invalid-token')

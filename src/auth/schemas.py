@@ -1,7 +1,7 @@
 from datetime import date
 from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated
-from src.users.model import RoleEnum
+from src.user_roles.model import UserRoleEnum
 
 
 class UserRegister(BaseModel):
@@ -13,7 +13,7 @@ class UserRegister(BaseModel):
     phone: Annotated[str | None, Field(pattern=r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$', example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
     password: Annotated[str, Field(pattern=r'^[A-Za-z0-9-_]{8,16}$', example="2a_B4-cJ_q5")]
-    role: RoleEnum
+    role: UserRoleEnum
 
 
 class UserLogin(BaseModel):
@@ -33,6 +33,3 @@ class AccessRefreshTokensRead(BaseModel):
     access_token: str
     refresh_token: str | None = None
     tokens_type: str = 'Bearer'
-
-
-
