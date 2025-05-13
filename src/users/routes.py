@@ -1,8 +1,5 @@
 from fastapi import APIRouter, status
-from src.dependencies import (
-    CurrentUserByAccessTokenDep, UserRolesServiceDep, UsersServiceDep, CurrentManagerDep, ServicesServiceDep
-)
-from src.services.schemas import ServiceRead
+from src.dependencies import CurrentUserByAccessTokenDep, UserRolesServiceDep, UsersServiceDep
 from .schemas import UserRoleCreate, UserRoleRead, UserRead, UserUpdate
 
 router = APIRouter(
@@ -27,23 +24,6 @@ async def assign_role(
 ) -> UserRoleRead:
     user_roles = await user_roles_service.assign_role(user.id, data)
     return user_roles
-
-
-@router.get(
-    '/me/services',
-    tags=['services'],
-    responses={
-        200: {'description': 'Services successfully received'},
-        401: {'description': 'Access token are invalid'},
-        403: {'description': 'Access for current user denied'}
-    },
-    summary='Get current manager services'
-)
-async def get_manager_services(
-        current_manager: CurrentManagerDep, services_service: ServicesServiceDep
-) -> list[ServiceRead]:
-    services = await services_service.get_manager_services(current_manager.id)
-    return services
 
 
 @router.get(
