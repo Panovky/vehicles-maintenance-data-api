@@ -12,8 +12,6 @@ from src.user_roles.model import UserRoleEnum
 from src.user_roles.repository import UserRolesRepository
 from src.user_roles.service import UserRolesService
 from src.auth.service import AuthService
-from src.services.repository import ServicesRepository
-from src.services.service import ServicesService
 from src.makes.repository import MakesRepository
 from src.makes.service import MakesService
 from src.models.repository import ModelsRepository
@@ -27,6 +25,10 @@ from src.configurations.service import ConfigurationsService
 from src.scrapers.service import DromScraperService, EgrulEgripScraperService
 from src.vehicles.repository import VehiclesRepository
 from src.vehicles.service import VehiclesService
+from src.services.repository import ServicesRepository
+from src.services.service import ServicesService
+from src.service_workers.repository import ServiceWorkersRepository
+from src.service_workers.service import ServiceWorkersService
 
 
 async def get_async_session() -> AsyncSession:
@@ -251,11 +253,35 @@ def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepositor
     return ServicesRepository(async_session)
 
 
-ServicesServiceDep = Annotated[ServicesRepository, Depends(get_services_repository)]
+ServicesRepositoryDep = Annotated[ServicesRepository, Depends(get_services_repository)]
 
 
-def get_services_service(services_repository: ServicesServiceDep) -> ServicesService:
+def get_services_service(services_repository: ServicesRepositoryDep) -> ServicesService:
     return ServicesService(services_repository)
 
 
 ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
+
+
+def get_service_workers_repository(async_session: AsyncSessionDep) -> ServiceWorkersRepository:
+    return ServiceWorkersRepository(async_session)
+
+
+ServiceWorkersRepositoryDep = Annotated[ServiceWorkersRepository, Depends(get_service_workers_repository)]
+
+
+def get_service_workers_service(
+        users_repository: UsersRepositoryDep,
+        services_repository: ServicesRepositoryDep,
+        service_workers_repository: ServiceWorkersRepositoryDep,
+        email_service: EmailServiceDep
+) -> ServiceWorkersService:
+    return ServiceWorkersService(
+        users_repository,
+        services_repository,
+        service_workers_repository,
+        email_service
+    )
+
+
+ServiceWorkersServiceDep = Annotated[ServiceWorkersService, Depends(get_service_workers_service)]
