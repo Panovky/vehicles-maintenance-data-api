@@ -283,12 +283,14 @@ def get_service_workers_service(
         users_repository: UsersRepositoryDep,
         services_repository: ServicesRepositoryDep,
         service_workers_repository: ServiceWorkersRepositoryDep,
+        jwt_service: JWTServiceDep,
         email_service: EmailServiceDep
 ) -> ServiceWorkersService:
     return ServiceWorkersService(
         users_repository,
         services_repository,
         service_workers_repository,
+        jwt_service,
         email_service
     )
 
