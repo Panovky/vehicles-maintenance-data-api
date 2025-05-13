@@ -1,23 +1,7 @@
 from datetime import datetime, date
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Annotated
-from .model import RoleEnum
-
-
-class UserRoleCreate(BaseModel):
-    """The model representing the data needed to assign a new role to the current user."""
-    role: RoleEnum
-
-
-class UserRoleRead(BaseModel):
-    """The model representing the user role data to be returned to the client."""
-    model_config = ConfigDict(from_attributes=True)
-
-    id: Annotated[int, Field(example=1)]
-    created_at: datetime
-    updated_at: datetime
-    user_id: Annotated[int, Field(example=1)]
-    role: RoleEnum
+from src.user_roles.model import UserRoleEnum
 
 
 class UserRead(BaseModel):
@@ -33,7 +17,7 @@ class UserRead(BaseModel):
     birthday: Annotated[date | None, Field(example="1984-09-05")]
     phone: Annotated[str | None, Field(example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
-    roles: list[RoleEnum]
+    roles: list[UserRoleEnum]
 
 
 class UserUpdate(BaseModel):
