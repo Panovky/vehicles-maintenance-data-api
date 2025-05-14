@@ -22,7 +22,7 @@ class JWTService:
             token: str,
             public_key: str = settings.jwt.public_key_path.read_text(),
             algorithm: str = settings.jwt.algorithm
-    ) -> str:
+    ) -> dict:
         return jwt.decode(token, public_key, algorithms=[algorithm])
 
     def get_access_token(self, _id: int, email: str) -> str:
@@ -43,8 +43,8 @@ class JWTService:
             token_expire_minutes=settings.jwt.verify_email_token_expire_hours * 60
         )
 
-    def get_invite_worker_token(self, email: str, position: str) -> str:
+    def get_attach_worker_token(self, email: str, position: str) -> str:
         return self.encode_jwt(
-            payload={'sub': email, 'position': position, 'type': 'invite_worker'},
-            token_expire_minutes=settings.jwt.invite_worker_token_expire_hours * 60
+            payload={'sub': email, 'position': position, 'type': 'attach_worker'},
+            token_expire_minutes=settings.jwt.attach_worker_token_expire_hours * 60
         )
