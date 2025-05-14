@@ -114,6 +114,14 @@ class ServiceInnNotFoundInEgrulEgripException(HTTPException):
         )
 
 
+class WorkerIsNotRegisteredException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Невозможно отправить приглашение в команду, так как пользователь не зарегистрирован в системе.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
