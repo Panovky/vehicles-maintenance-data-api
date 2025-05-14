@@ -281,6 +281,7 @@ ServiceWorkersRepositoryDep = Annotated[ServiceWorkersRepository, Depends(get_se
 
 def get_service_workers_service(
         users_repository: UsersRepositoryDep,
+        user_roles_repository: UserRolesRepositoryDep,
         services_repository: ServicesRepositoryDep,
         service_workers_repository: ServiceWorkersRepositoryDep,
         jwt_service: JWTServiceDep,
@@ -288,6 +289,7 @@ def get_service_workers_service(
 ) -> ServiceWorkersService:
     return ServiceWorkersService(
         users_repository,
+        user_roles_repository,
         services_repository,
         service_workers_repository,
         jwt_service,
