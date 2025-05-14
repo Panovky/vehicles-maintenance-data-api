@@ -36,7 +36,7 @@ class ServiceWorkersService:
             text=f"""
             Здравствуйте!  
             
-            Вас приглашают в команду автосервиса {service.name} на должность «{data.position}».  
+            Вас приглашают в команду автосервиса {service.commercial_name} на должность «{data.position}».  
 
             Для подтверждения перейдите по ссылке: 
             {invite_worker_url} 
@@ -53,7 +53,7 @@ class ServiceWorkersService:
                 <meta charset="UTF-8">
             </head>
             <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
-                <p>Вас приглашают в команду автосервиса {service.name} на должность «{data.position}».</p>
+                <p>Вас приглашают в команду автосервиса {service.commercial_name} на должность «{data.position}».</p>
 
                 <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
                     <a href="{invite_worker_url}" 
