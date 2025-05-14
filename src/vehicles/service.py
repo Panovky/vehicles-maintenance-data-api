@@ -61,8 +61,6 @@ class VehiclesService:
                 while chunk := await photo.read(1024):
                     await buffer.write(chunk)
             data['photo_path'] = f'/static/vehicles/photos/{photo_name}'
-        else:
-            data['photo_path'] = f'/static/vehicles/photos/default.png'
 
         data['color'] = data['color'].value
         data['user_id'] = owner_id
