@@ -1,62 +1,31 @@
 import bcrypt
-import jwt
-import os
-import smtplib
-import imaplib
 from fastapi.responses import RedirectResponse
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.header import Header
-from imapclient import imap_utf7
-from datetime import timedelta, datetime
 from jwt.exceptions import InvalidTokenError
-from src.config import settings
+from src.core.jwt_service import JWTService
+from src.core.email_service import EmailService
 from src.exceptions import (
     UserEmailIsNotUniqueException, EmailVerifyingPendingException, UserPhoneIsNotUniqueException,
     InvalidUserCredentialsException, UserEmailIsNotVerifiedException, InvalidTokenException
 )
-from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.schemas import UserRead, RoleEnum
+from src.users.repository import UsersRepository
+from src.users.schemas import UserRead
+from src.user_roles.model import UserRoleEnum
+from src.user_roles.repository import UserRolesRepository
 from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTokenRead
 
 
 class AuthService:
-    def __init__(self, users_repository: UsersRepository, user_roles_repository: UserRolesRepository):
+    def __init__(
+            self,
+            users_repository: UsersRepository,
+            user_roles_repository: UserRolesRepository,
+            jwt_service: JWTService,
+            email_service: EmailService
+    ):
         self.users_repository: UsersRepository = users_repository
         self.user_roles_repository: UserRolesRepository = user_roles_repository
-
-    @staticmethod
-    def send_email(receiver_address, subject, text, html):
-        sender_address = os.getenv('EMAIL_ADDRESS')
-        sender_app_password = os.getenv('EMAIL_APP_PASSWORD')
-        sender_smtp_server = os.getenv('EMAIL_SMTP_SERVER')
-        sender_imap_server = os.getenv('EMAIL_IMAP_SERVER')
-        sender_smtp_port = int(os.getenv('EMAIL_SMTP_PORT'))
-        sender_imap_port = int(os.getenv('EMAIL_IMAP_PORT'))
-
-        message = MIMEMultipart('alternative')
-        message['From'] = sender_address
-        message['To'] = receiver_address
-        message['Subject'] = Header(subject, 'utf-8')
-
-        part1 = MIMEText(text, 'plain')
-        part2 = MIMEText(html, 'html')
-        message.attach(part1)
-        message.attach(part2)
-
-        smtp = smtplib.SMTP_SSL(sender_smtp_server, sender_smtp_port)
-        smtp.login(sender_address, sender_app_password)
-        smtp.sendmail(sender_address, receiver_address, message.as_string())
-        smtp.quit()
-
-        imap = imaplib.IMAP4_SSL(sender_imap_server, sender_imap_port)
-        imap.login(sender_address, sender_app_password)
-        imap.append(
-            mailbox=str(imap_utf7.encode('Отправленные'))[2:-1],
-            flags=None,
-            date_time=None,
-            message=message.as_bytes())
-        imap.logout()
+        self.jwt_service: JWTService = jwt_service
+        self.email_service: EmailService = email_service
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -78,47 +47,6 @@ class AuthService:
 
         return user
 
-    @staticmethod
-    def encode_jwt(
-            payload: dict,
-            token_expire_minutes: int,
-            private_key: str = settings.jwt_auth.private_key_path.read_text(),
-            algorithm: str = settings.jwt_auth.algorithm
-    ):
-        payload_to_encode = payload.copy()
-        now = datetime.utcnow()
-        expire = now + timedelta(minutes=token_expire_minutes)
-        payload_to_encode.update(iat=now, exp=expire)
-        encoded = jwt.encode(payload_to_encode, private_key, algorithm=algorithm)
-        return encoded
-
-    @staticmethod
-    def decode_jwt(
-            token: str,
-            public_key: str = settings.jwt_auth.public_key_path.read_text(),
-            algorithm: str = settings.jwt_auth.algorithm
-    ):
-        decoded = jwt.decode(token, public_key, algorithms=[algorithm])
-        return decoded
-
-    def get_access_token(self, _id: int, email: str) -> str:
-        return self.encode_jwt(
-            payload={'sub': str(_id), 'email': email, 'type': 'access'},
-            token_expire_minutes=settings.jwt_auth.access_token_expire_minutes
-        )
-
-    def get_refresh_token(self, _id: int, email: str) -> str:
-        return self.encode_jwt(
-            payload={'sub': str(_id), 'email': email, 'type': 'refresh'},
-            token_expire_minutes=settings.jwt_auth.refresh_token_expire_days * 24 * 60
-        )
-
-    def get_verify_email_token(self, email: str, role: str) -> str:
-        return self.encode_jwt(
-            payload={'sub': email, 'role': role, 'type': 'verify_email'},
-            token_expire_minutes=settings.jwt_auth.verify_email_token_expire_hours * 60
-        )
-
     async def register(self, data: UserRegister) -> AccessRefreshTokensRead:
         if res := await self.users_repository.filter_by(email=data.email):
             if res[0].is_email_verified:
@@ -137,10 +65,10 @@ class AuthService:
         await self.user_roles_repository.assign_role(user.id, data.role)
 
         name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        verify_email_token = self.get_verify_email_token(user.email, data.role.value)
+        verify_email_token = self.jwt_service.get_verify_email_token(user.email, data.role.value)
         verify_email_url = f'http://localhost:8000/auth/verify-email?token={verify_email_token}'
 
-        self.send_email(
+        self.email_service.send_email(
             receiver_address=user.email,
             subject='Завершение регистрации в приложении для управления данными о техническом обслуживании автомобилей',
             text=f"""
@@ -191,13 +119,13 @@ class AuthService:
         )
 
         return AccessRefreshTokensRead(
-            access_token=self.get_access_token(user.id, user.email),
-            refresh_token=self.get_refresh_token(user.id, user.email)
+            access_token=self.jwt_service.get_access_token(user.id, user.email),
+            refresh_token=self.jwt_service.get_refresh_token(user.id, user.email)
         )
 
     async def verify_email(self, token: str) -> RedirectResponse:
         try:
-            payload = self.decode_jwt(token=token)
+            payload = self.jwt_service.decode_jwt(token=token)
         except InvalidTokenError:
             return RedirectResponse(url='http://localhost:4173/register/invalid-token')
 
@@ -208,7 +136,7 @@ class AuthService:
         if token_type and token_type == 'verify_email' and email and role:
             if user := await self.users_repository.get_by_email(email):
                 await self.users_repository.update(user.id, {'is_email_verified': True})
-                url = f'http://localhost:4173/{"vehicles" if role == RoleEnum.owner.value else "services"}/create'
+                url = f'http://localhost:4173/{"vehicles" if role == UserRoleEnum.owner.value else "services"}/create'
                 return RedirectResponse(url=url)
 
         return RedirectResponse(url='http://localhost:4173/register/invalid-token')
@@ -217,16 +145,16 @@ class AuthService:
         user = await self.get_user_by_credentials(data)
 
         return AccessRefreshTokensRead(
-            access_token=self.get_access_token(user.id, user.email),
-            refresh_token=self.get_refresh_token(user.id, user.email)
+            access_token=self.jwt_service.get_access_token(user.id, user.email),
+            refresh_token=self.jwt_service.get_refresh_token(user.id, user.email)
         )
 
     def refresh(self, user: UserRead) -> AccessTokenRead:
-        return AccessTokenRead(access_token=self.get_access_token(user.id, user.email))
+        return AccessTokenRead(access_token=self.jwt_service.get_access_token(user.id, user.email))
 
     async def get_current_user_by_token(self, token: str, token_type: str) -> UserRead:
         try:
-            payload = self.decode_jwt(token=token)
+            payload = self.jwt_service.decode_jwt(token=token)
         except InvalidTokenError:
             raise InvalidTokenException(token_type)
 

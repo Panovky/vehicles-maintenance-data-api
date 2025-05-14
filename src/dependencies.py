@@ -2,15 +2,17 @@ from fastapi import Depends
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
+from src.core.jwt_service import JWTService
+from src.core.email_service import EmailService
 from src.database import async_session_maker
 from src.exceptions import AccessDeniedException
-from src.users.model import RoleEnum
-from src.users.repository import UsersRepository, UserRolesRepository
-from src.users.service import UsersService, UserRolesService
+from src.users.repository import UsersRepository
+from src.users.service import UsersService
 from src.users.schemas import UserRead
+from src.user_roles.model import UserRoleEnum
+from src.user_roles.repository import UserRolesRepository
+from src.user_roles.service import UserRolesService
 from src.auth.service import AuthService
-from src.services.repository import ServicesRepository
-from src.services.service import ServicesService
 from src.makes.repository import MakesRepository
 from src.makes.service import MakesService
 from src.models.repository import ModelsRepository
@@ -24,6 +26,10 @@ from src.configurations.service import ConfigurationsService
 from src.scrapers.service import DromScraperService, EgrulEgripScraperService
 from src.vehicles.repository import VehiclesRepository
 from src.vehicles.service import VehiclesService
+from src.services.repository import ServicesRepository
+from src.services.service import ServicesService
+from src.service_workers.repository import ServiceWorkersRepository
+from src.service_workers.service import ServiceWorkersService
 
 
 async def get_async_session() -> AsyncSession:
@@ -32,6 +38,20 @@ async def get_async_session() -> AsyncSession:
 
 
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+
+
+def get_jwt_service() -> JWTService:
+    return JWTService()
+
+
+JWTServiceDep = Annotated[JWTService, Depends(get_jwt_service)]
+
+
+def get_email_service() -> EmailService:
+    return EmailService()
+
+
+EmailServiceDep = Annotated[EmailService, Depends(get_email_service)]
 
 
 def get_users_repository(async_session: AsyncSessionDep) -> UsersRepository:
@@ -63,9 +83,12 @@ UserRolesServiceDep = Annotated[UserRolesService, Depends(get_user_roles_service
 
 
 def get_auth_service(
-        users_repository: UsersRepositoryDep, user_roles_repository: UserRolesRepositoryDep
+        users_repository: UsersRepositoryDep,
+        user_roles_repository: UserRolesRepositoryDep,
+        jwt_service: JWTServiceDep,
+        email_service: EmailServiceDep
 ) -> AuthService:
-    return AuthService(users_repository, user_roles_repository)
+    return AuthService(users_repository, user_roles_repository, jwt_service, email_service)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
@@ -92,7 +115,7 @@ async def get_current_user_by_refresh_token(auth_header: AuthHeaderDep, auth_ser
 CurrentUserByRefreshTokenDep = Annotated[UserRead, Depends(get_current_user_by_refresh_token)]
 
 
-def get_checker_user_roles(required_roles: list[RoleEnum]):
+def get_checker_user_roles(required_roles: list[UserRoleEnum]):
     def check_user_has_roles(current_user: CurrentUserByAccessTokenDep) -> UserRead:
         user_roles = [role for role in current_user.roles]
 
@@ -104,9 +127,9 @@ def get_checker_user_roles(required_roles: list[RoleEnum]):
     return check_user_has_roles
 
 
-CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.owner]))]
-CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.manager]))]
-CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([RoleEnum.admin]))]
+CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner]))]
+CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.manager]))]
+CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.admin]))]
 
 
 def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
@@ -239,11 +262,37 @@ def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepositor
     return ServicesRepository(async_session)
 
 
-ServicesServiceDep = Annotated[ServicesRepository, Depends(get_services_repository)]
+ServicesRepositoryDep = Annotated[ServicesRepository, Depends(get_services_repository)]
 
 
-def get_services_service(services_repository: ServicesServiceDep) -> ServicesService:
+def get_services_service(services_repository: ServicesRepositoryDep) -> ServicesService:
     return ServicesService(services_repository)
 
 
 ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
+
+
+def get_service_workers_repository(async_session: AsyncSessionDep) -> ServiceWorkersRepository:
+    return ServiceWorkersRepository(async_session)
+
+
+ServiceWorkersRepositoryDep = Annotated[ServiceWorkersRepository, Depends(get_service_workers_repository)]
+
+
+def get_service_workers_service(
+        users_repository: UsersRepositoryDep,
+        services_repository: ServicesRepositoryDep,
+        service_workers_repository: ServiceWorkersRepositoryDep,
+        jwt_service: JWTServiceDep,
+        email_service: EmailServiceDep
+) -> ServiceWorkersService:
+    return ServiceWorkersService(
+        users_repository,
+        services_repository,
+        service_workers_repository,
+        jwt_service,
+        email_service
+    )
+
+
+ServiceWorkersServiceDep = Annotated[ServiceWorkersService, Depends(get_service_workers_service)]

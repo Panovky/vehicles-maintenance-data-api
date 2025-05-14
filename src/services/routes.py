@@ -10,6 +10,21 @@ router = APIRouter(
 
 
 @router.get(
+    '/me',
+    responses={
+        200: {'description': 'Services successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Get current manager services'
+)
+async def get_manager_services(
+        current_manager: CurrentManagerDep, services_service: ServicesServiceDep
+) -> list[ServiceRead]:
+    return await services_service.get_manager_services(current_manager.id)
+
+
+@router.get(
     '/{service_id}',
     responses={
         200: {'description': 'Service successfully received'},
@@ -24,8 +39,7 @@ async def get_service(
         service_id: Annotated[int, Path(gt=0)],
         services_service: ServicesServiceDep
 ) -> ServiceRead:
-    service = await services_service.get_by_id(service_id)
-    return service
+    return await services_service.get_by_id(service_id)
 
 
 @router.get(
@@ -41,8 +55,7 @@ async def get_services(
         current_user: CurrentUserByAccessTokenDep,
         services_service: ServicesServiceDep
 ) -> list[ServiceRead]:
-    services = await services_service.get_all()
-    return services
+    return await services_service.get_all()
 
 
 @router.post(
@@ -59,5 +72,4 @@ async def get_services(
 async def create_service(
         current_manager: CurrentManagerDep, data: ServiceCreate, services_service: ServicesServiceDep
 ) -> ServiceRead:
-    service = await services_service.create(data, current_manager.id)
-    return service
+    return await services_service.create(data, current_manager.id)

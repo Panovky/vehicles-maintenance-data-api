@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.utils.sqlalchemy_repository import SQLAlchemyRepository
+from src.core.sqlalchemy_repository import SQLAlchemyRepository
 from .model import Make
 
 

@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.sqlalchemy_repository import SQLAlchemyRepository
-from .model import Range
+from .model import ServiceWorker
 
 
-class RangesRepository(SQLAlchemyRepository):
+class ServiceWorkersRepository(SQLAlchemyRepository):
     def __init__(self, async_session: AsyncSession):
-        super().__init__(async_session, Range)
+        super().__init__(async_session, ServiceWorker)
