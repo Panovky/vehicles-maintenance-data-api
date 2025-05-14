@@ -14,7 +14,7 @@ router = APIRouter(
     responses={
         204: {'description': 'Invitation successfully sent'},
         401: {'description': 'Access token are invalid'},
-        403: {'description': 'Access for current user denied'},
+        403: {'description': 'Access for current user denied or worker is not registered'},
         404: {'description': 'Service not found'}
     },
     summary='Send email to invite a worker to the service'

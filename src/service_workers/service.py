@@ -1,6 +1,6 @@
 from src.core.jwt_service import JWTService
 from src.core.email_service import EmailService
-from src.exceptions import ServiceNotFoundException
+from src.exceptions import ServiceNotFoundException, WorkerIsNotRegisteredException
 from src.users.repository import UsersRepository
 from src.services.repository import ServicesRepository
 from .repository import ServiceWorkersRepository
@@ -26,6 +26,10 @@ class ServiceWorkersService:
         if not (service := await self.services_repository.get_by_id(service_id)):
             raise ServiceNotFoundException()
 
+        if not (user := await self.users_repository.get_by_email(data.email)) or not user.is_email_verified:
+            raise WorkerIsNotRegisteredException()
+
+        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
         invite_worker_token = self.jwt_service.get_invite_worker_token(data.email, data.position)
         invite_worker_url = \
             f'http://localhost:8000/services/{service_id}/workers/accept-invitation?token={invite_worker_token}'
@@ -34,9 +38,9 @@ class ServiceWorkersService:
             receiver_address=data.email,
             subject='Приглашение в команду автосервиса',
             text=f"""
-            Здравствуйте!  
+            Здравствуйте, {name}!  
             
-            Вас приглашают в команду автосервиса {service.commercial_name} на должность «{data.position}».  
+            Вас приглашают в команду автосервиса «{service.commercial_name}» на должность «{data.position}».  
 
             Для подтверждения перейдите по ссылке: 
             {invite_worker_url} 
@@ -53,7 +57,9 @@ class ServiceWorkersService:
                 <meta charset="UTF-8">
             </head>
             <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
-                <p>Вас приглашают в команду автосервиса {service.commercial_name} на должность «{data.position}».</p>
+                <p>Здравствуйте, {name}!  
+                
+                <br>Вас приглашают в команду автосервиса «{service.commercial_name}» на должность «{data.position}».</p>
 
                 <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
                     <a href="{invite_worker_url}" 
