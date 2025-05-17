@@ -31,6 +31,7 @@ from src.services.service import ServicesService
 from src.service_workers.repository import ServiceWorkersRepository
 from src.service_workers.service import ServiceWorkersService
 from src.service_clients.repository import ServiceClientsRepository
+from src.service_clients.service import ServiceClientsService
 
 
 async def get_async_session() -> AsyncSession:
@@ -306,3 +307,24 @@ def get_service_clients_repository(async_session: AsyncSessionDep) -> ServiceCli
 
 
 ServiceClientsRepositoryDep = Annotated[ServiceClientsRepository, Depends(get_service_clients_repository)]
+
+
+def get_service_clients_service(
+        users_repository: UsersRepositoryDep,
+        user_roles_repository: UserRolesRepositoryDep,
+        services_repository: ServicesRepositoryDep,
+        service_clients_repository: ServiceClientsRepositoryDep,
+        jwt_service: JWTServiceDep,
+        email_service: EmailServiceDep
+) -> ServiceClientsService:
+    return ServiceClientsService(
+        users_repository,
+        user_roles_repository,
+        services_repository,
+        service_clients_repository,
+        jwt_service,
+        email_service
+    )
+
+
+ServiceClientsServiceDep = Annotated[ServiceClientsService, Depends(get_service_clients_service)]
