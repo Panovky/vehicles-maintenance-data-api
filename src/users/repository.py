@@ -13,3 +13,8 @@ class UsersRepository(SQLAlchemyRepository):
         stmt = select(User).where(User.email == email).options(joinedload(User.roles))
         user = await self.async_session.execute(stmt)
         return user.scalar()
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        stmt = select(User).where(User.id == user_id).options(joinedload(User.roles))
+        user = await self.async_session.execute(stmt)
+        return user.scalar()
