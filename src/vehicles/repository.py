@@ -1,4 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from src.core.sqlalchemy_repository import SQLAlchemyRepository
 from .model import Vehicle
 
@@ -22,3 +24,14 @@ class VehiclesRepository(SQLAlchemyRepository):
             ]
         )
         return vehicle
+
+    async def filter_by(self, **filters) -> list[Vehicle]:
+        stmt = select(Vehicle).options(
+            joinedload(Vehicle.make),
+            joinedload(Vehicle.model),
+            joinedload(Vehicle.range),
+            joinedload(Vehicle.generation),
+            joinedload(Vehicle.configuration),
+        ).filter_by(**filters)
+        vehicles = await self.async_session.execute(stmt)
+        return list(vehicles.scalars())
