@@ -63,7 +63,7 @@ class VehiclesService:
             data['photo_path'] = f'/static/vehicles/photos/{photo_name}'
 
         data['color'] = data['color'].value
-        data['user_id'] = owner_id
+        data['owner_id'] = owner_id
 
         vehicle = await self.vehicles_repository.create(data)
         return VehicleRead.model_validate(vehicle)
