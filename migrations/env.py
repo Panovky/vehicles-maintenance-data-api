@@ -19,6 +19,7 @@ from src.configurations.model import Configuration
 from src.vehicles.model import Vehicle
 from src.services.model import Service
 from src.service_workers.model import ServiceWorker
+from src.service_clients.model import ServiceClient
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

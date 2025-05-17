@@ -48,3 +48,9 @@ class JWTService:
             payload={'sub': email, 'position': position, 'type': 'attach_worker'},
             token_expire_minutes=settings.jwt.attach_worker_token_expire_hours * 60
         )
+
+    def get_attach_client_token(self, email: str) -> str:
+        return self.encode_jwt(
+            payload={'sub': email, 'type': 'attach_client'},
+            token_expire_minutes=settings.jwt.attach_client_token_expire_hours * 60
+        )
