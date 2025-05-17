@@ -9,6 +9,21 @@ router = APIRouter(
 )
 
 
+@router.get(
+    '/me',
+    responses={
+        200: {'description': 'Vehicles successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'}
+    },
+    summary='Get current owner vehicles'
+)
+async def get_owner_vehicles(
+        current_owner: CurrentOwnerDep, vehicles_service: VehiclesServiceDep
+) -> list[VehicleRead]:
+    return await vehicles_service.get_owner_vehicles(current_owner.id)
+
+
 @router.post(
     '',
     status_code=status.HTTP_201_CREATED,

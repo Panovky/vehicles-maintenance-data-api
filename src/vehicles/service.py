@@ -63,7 +63,11 @@ class VehiclesService:
             data['photo_path'] = f'/static/vehicles/photos/{photo_name}'
 
         data['color'] = data['color'].value
-        data['user_id'] = owner_id
+        data['owner_id'] = owner_id
 
         vehicle = await self.vehicles_repository.create(data)
         return VehicleRead.model_validate(vehicle)
+
+    async def get_owner_vehicles(self, owner_id: int) -> list[VehicleRead]:
+        vehicles = await self.vehicles_repository.filter_by(owner_id=owner_id)
+        return [VehicleRead.model_validate(vehicle) for vehicle in vehicles]

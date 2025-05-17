@@ -16,7 +16,7 @@ class VehicleRead(BaseModel):
     id: Annotated[int, Field(example=1)]
     created_at: datetime
     updated_at: datetime
-    user_id: Annotated[int, Field(example=1)]
+    owner_id: Annotated[int, Field(example=1)]
     photo_path: Annotated[str, Field(example='/static/vehicles/photos/JHMCM56557C404453.jpg')]
     make: MakeRead
     model: ModelRead
