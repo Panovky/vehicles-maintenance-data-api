@@ -122,6 +122,15 @@ class WorkerIsNotRegisteredException(HTTPException):
         )
 
 
+class ClientIsNotRegisteredException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Невозможно отправить приглашение стать клиентом автосервиса, '
+                   'так как пользователь не зарегистрирован в системе.'
+        )
+
+
 class MakeNotFoundException(HTTPException):
     def __init__(self):
         super().__init__(
