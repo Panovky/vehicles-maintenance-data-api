@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import EmailStr
 from src.dependencies import CurrentManagerDep, ServiceClientsServiceDep
 from typing import Annotated
+from src.users.schemas import UserRead
 
 router = APIRouter(
     tags=['service clients']
@@ -41,3 +42,21 @@ async def attach_client(
         service_clients_service: ServiceClientsServiceDep
 ) -> RedirectResponse:
     return await service_clients_service.attach_client(service_id, token)
+
+
+@router.get(
+    '/services/{service_id}/clients',
+    responses={
+            200: {'description': 'Service clients successfully received'},
+            401: {'description': 'Access token are invalid'},
+            403: {'description': 'Access for current user denied'},
+            404: {'description': 'Service not found'}
+        },
+    summary='Get all service clients'
+)
+async def get_service_clients(
+        current_manager: CurrentManagerDep,
+        service_id: Annotated[int, Path(gt=0)],
+        service_clients_service: ServiceClientsServiceDep
+) -> list[UserRead]:
+    return await service_clients_service.get_service_clients(service_id)

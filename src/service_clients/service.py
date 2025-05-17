@@ -3,6 +3,7 @@ from jwt.exceptions import InvalidTokenError
 from src.core.jwt_service import JWTService
 from src.core.email_service import EmailService
 from src.exceptions import ServiceNotFoundException, ClientIsNotRegisteredException
+from src.users.schemas import UserRead
 from src.users.repository import UsersRepository
 from src.user_roles.repository import UserRolesRepository
 from src.user_roles.repository import UserRoleEnum
@@ -111,3 +112,26 @@ class ServiceClientsService:
             return RedirectResponse(url=f'http://localhost:4173/services/{service_id}')
 
         return RedirectResponse(url='http://localhost:4173/attach/invalid-token')
+
+    async def get_service_clients(self, service_id: int) -> list[UserRead]:
+        if not await self.services_repository.exists(id=service_id):
+            raise ServiceNotFoundException()
+
+        service_clients = await self.service_clients_repository.filter_by(service_id=service_id)
+
+        clients = []
+        for service_client in service_clients:
+            client = await self.users_repository.get_by_id(service_client.client_id)
+            clients.append(UserRead(
+                id=client.id,
+                created_at=client.created_at,
+                updated_at=client.updated_at,
+                last_name=client.last_name,
+                first_name=client.first_name,
+                patronymic=client.patronymic,
+                birthday=client.birthday,
+                phone=client.phone,
+                email=client.email,
+                roles=[role.role for role in client.roles]
+            ))
+        return clients
