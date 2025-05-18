@@ -21,6 +21,8 @@ from src.services.model import Service
 from src.service_workers.model import ServiceWorker
 from src.service_clients.model import ServiceClient
 from src.maintenance_records.model import MaintenanceRecord
+from src.maintenance_record_photos.model import MaintenanceRecordPhoto
+from src.maintenance_record_documents.model import MaintenanceRecordDocument
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
