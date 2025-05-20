@@ -76,58 +76,25 @@ class AuthService:
         user = await self.users_repository.create(data_dict)
         await self.user_roles_repository.assign_role(user.id, data['role'])
 
-        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        verify_email_token = self.jwt_service.get_verify_email_token(user.email, data['role'].value)
-        verify_email_url = f'http://localhost:8000/auth/verify-email?token={verify_email_token}'
+        name = f'{user.first_name}{" " + patronymic if (patronymic := user.patronymic) else ""}'
+        token = self.jwt_service.get_verify_email_token(user.email, data['role'].value)
+        url = f'http://localhost:8000/auth/verify-email?token={token}'
+
+        text = self.email_service.get_text_to_verify_email(
+            name=name,
+            url=url
+        )
+
+        html = self.email_service.get_html_to_verify_email(
+            name=name,
+            url=url
+        )
 
         self.email_service.send_email(
             receiver_address=user.email,
-            subject='Завершение регистрации в приложении для управления данными о техническом обслуживании автомобилей',
-            text=f"""
-            {name}, Вы получили это письмо, 
-            так как зарегистрировались в нашем приложении для управления данными о техническом обслуживании автомобилей.
-
-            Для завершения регистрации перейдите по ссылке:
-            {verify_email_url}
-            (Ссылка действительна в течение 24 часов)
-            
-            Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
-            
-            Если Вы не регистрировались в приложении, проигнорируйте это письмо.
-            """,
-            html=f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-            </head>
-            <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
-                <p>{name}, Вы получили это письмо,
-                так как зарегистрировались в нашем приложении 
-                для управления данными о техническом обслуживании автомобилей.</p>
-                
-                <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
-                    <p>Для завершения регистрации подтвердите Ваш email:</p>
-                    <a href="{verify_email_url}" 
-                        style="
-                            display: inline-block; 
-                            padding: 12px 24px;
-                            background-color: #f77320; 
-                            color: #FFFFFF !important;
-                            text-decoration: none; 
-                            border-radius: 4px;
-                            font-weight: bold; 
-                            margin: 5px 0;">Подтвердить email</a>
-                    <p>Кнопка активна в течение 24 часов</p>
-                </div>
-            
-                <p>Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:<br>
-                <a href="{verify_email_url}">{verify_email_url}</a></p>
-            
-                <p><em>Если Вы не регистрировались в системе, проигнорируйте это письмо.</em></p>
-            </body>
-            </html>
-            """
+            subject='Завершение регистрации в приложении',
+            text=text,
+            html=html
         )
 
         return AccessRefreshTokensRead(

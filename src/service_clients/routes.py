@@ -23,7 +23,7 @@ router = APIRouter(
 )
 async def invite_client(
         current_manager: CurrentManagerDep,
-        email: Annotated[EmailStr, Body(example='nikita.filatov@yandex.ru')],
+        email: Annotated[EmailStr, Body(embed=True)],
         service_id: Annotated[int, Path(gt=0)],
         service_clients_service: ServiceClientsServiceDep
 ) -> Response:

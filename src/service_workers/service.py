@@ -35,59 +35,29 @@ class ServiceWorkersService:
         if not (user := await self.users_repository.get_by_email(data.email)) or not user.is_email_verified:
             raise WorkerIsNotRegisteredException()
 
-        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        attach_worker_token = self.jwt_service.get_attach_worker_token(data.email, data.position)
-        attach_worker_url = \
-            f'http://localhost:8000/services/{service_id}/workers/attach?token={attach_worker_token}'
+        name = f'{user.first_name}{" " + patronymic if (patronymic := user.patronymic) else ""}'
+        token = self.jwt_service.get_attach_worker_token(data.email, data.position)
+        url = f'http://localhost:8000/services/{service_id}/workers/attach?token={token}'
+
+        text = self.email_service.get_text_to_invite_worker(
+            name=name,
+            commercial_name=service.commercial_name,
+            position=data.position,
+            url=url
+        )
+
+        html = self.email_service.get_html_to_invite_worker(
+            name=name,
+            commercial_name=service.commercial_name,
+            position=data.position,
+            url=url
+        )
 
         self.email_service.send_email(
             receiver_address=data.email,
             subject='Приглашение в команду автосервиса',
-            text=f"""
-            Здравствуйте, {name}!  
-            
-            Вас приглашают в команду автосервиса «{service.commercial_name}» на должность «{data.position}».  
-
-            Для подтверждения перейдите по ссылке: 
-            {attach_worker_url} 
-            (Ссылка действительна в течение 24 часов) 
-            
-            Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
-            
-            Если письмо пришло Вам по ошибке, проигнорируйте его.  
-            """,
-            html=f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-            </head>
-            <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
-                <p>Здравствуйте, {name}!  
-                
-                <br>Вас приглашают в команду автосервиса «{service.commercial_name}» на должность «{data.position}».</p>
-
-                <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
-                    <a href="{attach_worker_url}" 
-                        style="
-                            display: inline-block; 
-                            padding: 12px 24px;
-                            background-color: #f77320; 
-                            color: #FFFFFF !important;
-                            text-decoration: none; 
-                            border-radius: 4px;
-                            font-weight: bold; 
-                            margin: 5px 0;">Принять приглашение</a>
-                    <p>Кнопка активна в течение 24 часов</p>
-                </div>
-
-                <p>Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:<br>
-                <a href="{attach_worker_url}">{attach_worker_url}</a></p>
-
-                <p><em>Если письмо пришло Вам по ошибке, проигнорируйте его.</em></p>
-            </body>
-            </html>
-            """
+            text=text,
+            html=html
         )
 
     async def attach_worker(self, service_id: int, token: str) -> RedirectResponse:

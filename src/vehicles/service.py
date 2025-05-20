@@ -55,61 +55,34 @@ class VehiclesService:
         if not (user := await self.users_repository.get_by_email(email)) or not user.is_email_verified:
             raise OwnerIsNotRegisteredException()
 
-        name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        transfer_vehicle_token = self.jwt_service.get_transfer_vehicle_token(email)
-        transfer_vehicle_url = \
-            f'http://localhost:8000/vehicles/{vehicle_id}/transfer?token={transfer_vehicle_token}'
+        name = f'{user.first_name}{" " + patronymic if (patronymic := user.patronymic) else ""}'
+        make = vehicle.make.name
+        model = vehicle.model.name
+        registration_plate = vehicle.registration_plate
+        token = self.jwt_service.get_transfer_vehicle_token(email)
+        url = f'http://localhost:8000/vehicles/{vehicle_id}/transfer?token={token}'
+
+        text = self.email_service.get_text_to_init_vehicle_transfer(
+            name=name,
+            make=make,
+            model=model,
+            registration_plate=registration_plate,
+            url=url
+        )
+
+        html = self.email_service.get_html_to_init_vehicle_transfer(
+            name=name,
+            make=make,
+            model=model,
+            registration_plate=registration_plate,
+            url=url
+        )
 
         self.email_service.send_email(
             receiver_address=email,
             subject='Передача истории технического обслуживания автомобиля',
-            text=f"""
-            Здравствуйте, {name}!
-
-            Вам хотят передать историю обслуживания автомобиля «{vehicle.make.name} {vehicle.model.name}» 
-            с регистрационным знаком «{vehicle.registration_plate}».
-
-            Для подтверждения передачи перейдите по ссылке:
-            {transfer_vehicle_url}
-            (Ссылка действительна в течение 24 часов)
-
-            Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
-
-            Если письмо пришло Вам по ошибке, проигнорируйте его.
-            """,
-            html=f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-            </head>
-            <body style="font-family: Arial, sans-serif; color: #000000 !important; line-height: 1.6;">
-                <p>Здравствуйте, {name}!
-
-                <br>Вам хотят передать историю обслуживания автомобиля «{vehicle.make.name} {vehicle.model.name}» 
-            с регистрационным знаком «{vehicle.registration_plate}».</p>
-
-                <div style="background-color: #adf28d; padding: 15px; border-radius: 4px;">
-                    <a href="{transfer_vehicle_url}"
-                        style="
-                            display: inline-block;
-                            padding: 12px 24px;
-                            background-color: #f77320;
-                            color: #FFFFFF !important;
-                            text-decoration: none;
-                            border-radius: 4px;
-                            font-weight: bold;
-                            margin: 5px 0;">Подтвердить передачу</a>
-                    <p>Кнопка активна в течение 24 часов</p>
-                </div>
-
-                <p>Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:<br>
-                <a href="{transfer_vehicle_url}">{transfer_vehicle_url}</a></p>
-
-                <p><em>Если письмо пришло Вам по ошибке, проигнорируйте его.</em></p>
-            </body>
-            </html>
-            """
+            text=text,
+            html=html
         )
 
     async def transfer_vehicle(self, vehicle_id: int, token: str) -> RedirectResponse:
