@@ -14,6 +14,7 @@ class UserRead(BaseModel):
     last_name: Annotated[str, Field(example="Филатов")]
     first_name: Annotated[str, Field(example="Никита")]
     patronymic: Annotated[str | None, Field(example="Андреевич")]
+    photo_path: Annotated[str, Field(example='/static/users/photos/nikita.filatov@yandex.ru.jpg')]
     birthday: Annotated[date | None, Field(example="1984-09-05")]
     phone: Annotated[str | None, Field(example="+7 (950) 732-13-83")]
     email: Annotated[EmailStr, Field(example="nikita.filatov@yandex.ru")]
