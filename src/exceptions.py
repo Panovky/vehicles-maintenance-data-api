@@ -185,3 +185,21 @@ class RegistrationPlateIsNotUniqueException(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail='Автомобиль с таким регистрационным знаком уже существует в системе.'
         )
+
+
+class VehicleNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Автомобиль с данным id не найден.'
+        )
+
+
+class OwnerIsNotRegisteredException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Невозможно отправить письмо для передачи истории обслуживания автомобиля новому владельцу,'
+                   'поскольку он еще не зарегистрирован в системе.'
+        )
+
