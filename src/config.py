@@ -17,6 +17,7 @@ class JWTSettings(BaseModel):
     refresh_token_expire_days: int = 30
     attach_worker_token_expire_hours: int = 24
     attach_client_token_expire_hours: int = 24
+    transfer_vehicle_token_expire_hours: int = 24
 
 
 class Settings(BaseSettings):
