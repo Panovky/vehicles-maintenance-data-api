@@ -32,6 +32,10 @@ from src.service_workers.repository import ServiceWorkersRepository
 from src.service_workers.service import ServiceWorkersService
 from src.service_clients.repository import ServiceClientsRepository
 from src.service_clients.service import ServiceClientsService
+from src.maintenance_records.repository import MaintenanceRecordsRepository
+from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
+from src.maintenance_record_photos.repository import MaintenanceRecordPhotosRepository
+from src.maintenance_record_documents.repository import MaintenanceRecordDocumentsRepository
 
 
 async def get_async_session() -> AsyncSession:
@@ -336,3 +340,37 @@ def get_service_clients_service(
 
 
 ServiceClientsServiceDep = Annotated[ServiceClientsService, Depends(get_service_clients_service)]
+
+
+def get_maintenance_records_repository(async_session: AsyncSessionDep) -> MaintenanceRecordsRepository:
+    return MaintenanceRecordsRepository(async_session)
+
+
+MaintenanceRecordsRepositoryDep = Annotated[MaintenanceRecordsRepository, Depends(get_maintenance_records_repository)]
+
+
+def get_maintenance_record_workers_repository(async_session: AsyncSessionDep) -> MaintenanceRecordWorkersRepository:
+    return MaintenanceRecordWorkersRepository(async_session)
+
+
+MaintenanceRecordWorkersRepositoryDep = Annotated[
+    MaintenanceRecordWorkersRepository, Depends(get_maintenance_record_workers_repository)
+]
+
+
+def get_maintenance_record_photos_repository(async_session: AsyncSessionDep) -> MaintenanceRecordPhotosRepository:
+    return MaintenanceRecordPhotosRepository(async_session)
+
+
+MaintenanceRecordPhotosRepositoryDep = Annotated[
+    MaintenanceRecordPhotosRepository, Depends(get_maintenance_record_photos_repository)
+]
+
+
+def get_maintenance_record_documents_repository(async_session: AsyncSessionDep) -> MaintenanceRecordDocumentsRepository:
+    return MaintenanceRecordDocumentsRepository(async_session)
+
+
+MaintenanceRecordDocumentsRepositoryDep = Annotated[
+    MaintenanceRecordDocumentsRepository, Depends(get_maintenance_record_documents_repository)
+]
