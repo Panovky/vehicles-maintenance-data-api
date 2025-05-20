@@ -10,6 +10,7 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     patronymic: Mapped[str | None] = mapped_column(String(40), nullable=True, default=None)
+    photo_path: Mapped[str] = mapped_column(String(255), nullable=False, default='/static/users/photos/default.png')
     birthday: Mapped[date | None] = mapped_column(Date, nullable=True, default=None)
     phone: Mapped[str | None] = mapped_column(CHAR(18), nullable=True, default=None, unique=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
