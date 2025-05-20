@@ -245,7 +245,11 @@ def get_vehicles_service(
         ranges_repository: RangesRepositoryDep,
         generations_repository: GenerationsRepositoryDep,
         configurations_repository: ConfigurationsRepositoryDep,
-        vehicles_repository: VehiclesRepositoryDep
+        vehicles_repository: VehiclesRepositoryDep,
+        users_repository: UsersRepositoryDep,
+        user_roles_repository: UserRolesRepositoryDep,
+        jwt_service: JWTServiceDep,
+        email_service: EmailServiceDep
 ) -> VehiclesService:
     return VehiclesService(
         makes_repository,
@@ -253,7 +257,11 @@ def get_vehicles_service(
         ranges_repository,
         generations_repository,
         configurations_repository,
-        vehicles_repository
+        vehicles_repository,
+        users_repository,
+        user_roles_repository,
+        jwt_service,
+        email_service
     )
 
 

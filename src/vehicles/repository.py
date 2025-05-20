@@ -9,6 +9,17 @@ class VehiclesRepository(SQLAlchemyRepository):
     def __init__(self, async_session: AsyncSession):
         super().__init__(async_session, Vehicle)
 
+    async def get_by_id(self, _id: int) -> Vehicle | None:
+        stmt = select(Vehicle).options(
+            joinedload(Vehicle.make),
+            joinedload(Vehicle.model),
+            joinedload(Vehicle.range),
+            joinedload(Vehicle.generation),
+            joinedload(Vehicle.configuration),
+        )
+        vehicle = await self.async_session.execute(stmt)
+        return vehicle.scalar()
+
     async def create(self, data: dict) -> Vehicle:
         vehicle = self.model(**data)
         self.async_session.add(vehicle)
