@@ -1,4 +1,7 @@
+import aiofiles
 import bcrypt
+from pathlib import Path
+from fastapi import UploadFile
 from fastapi.responses import RedirectResponse
 from jwt.exceptions import InvalidTokenError
 from src.core.jwt_service import JWTService
@@ -11,7 +14,8 @@ from src.users.repository import UsersRepository
 from src.users.schemas import UserRead
 from src.user_roles.model import UserRoleEnum
 from src.user_roles.repository import UserRolesRepository
-from .schemas import UserRegister, UserLogin, AccessRefreshTokensRead, AccessTokenRead
+from src.config import USERS_PHOTOS_DIR
+from .schemas import UserLogin, AccessRefreshTokensRead, AccessTokenRead
 
 
 class AuthService:
@@ -47,25 +51,33 @@ class AuthService:
 
         return user
 
-    async def register(self, data: UserRegister) -> AccessRefreshTokensRead:
-        if res := await self.users_repository.filter_by(email=data.email):
+    async def register(self, data: dict, photo: UploadFile | None) -> AccessRefreshTokensRead:
+        if res := await self.users_repository.filter_by(email=data['email']):
             if res[0].is_email_verified:
                 raise UserEmailIsNotUniqueException()
             else:
                 raise EmailVerifyingPendingException()
 
-        if (phone := data.phone) and await self.users_repository.exists(phone=phone):
+        if (phone := data['phone']) and await self.users_repository.exists(phone=phone):
             raise UserPhoneIsNotUniqueException()
 
-        data_dict = {key: value for key, value in data.model_dump().items() if key != 'password' and key != 'role'}
-        password_hash = self.hash_password(data.password)
+        if photo:
+            photo_name = f'{data["email"]}{Path(photo.filename).suffix}'
+            photo_path = USERS_PHOTOS_DIR / photo_name
+            async with aiofiles.open(photo_path, 'wb') as buffer:
+                while chunk := await photo.read(1024):
+                    await buffer.write(chunk)
+            data['photo_path'] = f'/static/users/photos/{photo_name}'
+
+        data_dict = {key: value for key, value in data.items() if key != 'password' and key != 'role'}
+        password_hash = self.hash_password(data['password'])
         data_dict['password_hash'] = password_hash
         data_dict['is_email_verified'] = False
         user = await self.users_repository.create(data_dict)
-        await self.user_roles_repository.assign_role(user.id, data.role)
+        await self.user_roles_repository.assign_role(user.id, data['role'])
 
         name = f'{user.first_name} {patronymic if (patronymic := user.patronymic) else ""}'
-        verify_email_token = self.jwt_service.get_verify_email_token(user.email, data.role.value)
+        verify_email_token = self.jwt_service.get_verify_email_token(user.email, data['role'].value)
         verify_email_url = f'http://localhost:8000/auth/verify-email?token={verify_email_token}'
 
         self.email_service.send_email(
@@ -177,6 +189,7 @@ class AuthService:
             last_name=user.last_name,
             first_name=user.first_name,
             patronymic=user.patronymic,
+            photo_path=user.photo_path,
             birthday=user.birthday,
             phone=user.phone,
             email=user.email,

@@ -42,6 +42,7 @@ class UsersService:
             last_name=user.last_name,
             first_name=user.first_name,
             patronymic=user.patronymic,
+            photo_path=user.photo_path,
             birthday=user.birthday,
             phone=user.phone,
             email=user.email,
