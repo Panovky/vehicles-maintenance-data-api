@@ -109,6 +109,72 @@ class EmailService:
             """
 
     @staticmethod
+    def get_text_to_invite_client(name: str, commercial_name: str, url: str) -> str:
+        return f"""
+        Здравствуйте, {name}!
+
+        Вас приглашают стать клиентом автосервиса «{commercial_name}».
+
+        Для подтверждения перейдите по ссылке:
+        {url}
+        (Ссылка действительна в течение 24 часов)
+
+        Если ссылка не кликабельна, скопируйте ее и вставьте в адресную строку браузера.
+
+        Если письмо пришло Вам по ошибке, проигнорируйте его.
+        """
+
+    @staticmethod
+    def get_html_to_invite_client(name: str, commercial_name: str, url: str) -> str:
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+        </head>
+        <body style="
+                width: 80%;
+                margin: 0 auto; 
+                font-family: Times New Roman, sans-serif;
+                line-height: 1.6;
+            ">
+            <p style="color: #000000 !important; font-size: 16pt;">
+                Здравствуйте, <strong>{name}</strong>!
+
+                <br>Вас приглашают стать клиентом автосервиса <strong>{commercial_name}</strong>.
+            </p>
+            <a
+                href="{url}"
+                style="
+                    display: inline-block;
+                    background-color: #4430E0B2;
+                    color: #FFFFFF !important;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    font-size: 18pt;
+                    padding: 10px;
+                    margin-top: 5px;
+                "
+            >
+                Принять приглашение
+            </a>
+            <p style="color: #000000 !important; font-size: 14pt; margin-top: 0px;">
+                <em>Кнопка активна в течение 24 часов</em>
+            </p>
+            <p style="color: #000000 !important; font-size: 16pt; margin-bottom: 0px">
+                Если кнопка не работает, скопируйте ссылку и вставьте ее в адресную строку браузера:
+            </p>
+            <a style="font-size: 16pt;" href="{url}">{url}</a>
+
+            <p style="color: #000000 !important; font-size: 14pt;">
+                <em>Если письмо пришло Вам по ошибке, проигнорируйте его.</em>
+            </p>
+        </body>
+        </html>
+        """
+
+    @staticmethod
     def get_text_to_init_vehicle_transfer(
             name: str, make: str, model: str, registration_plate: str, url: str
     ) -> str:
@@ -146,7 +212,7 @@ class EmailService:
                 <p style="color: #000000 !important; font-size: 16pt;"> 
                     Здравствуйте, <strong>{name}</strong>!
 
-                    <br style="color: #000000 !important;">
+                    <br>
                     Вам хотят передать историю технического обслуживания автомобиля <strong>{make} {model}</strong>
                     с регистрационным знаком <strong>{registration_plate}</strong>.
                 </p>

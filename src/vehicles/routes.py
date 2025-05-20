@@ -24,7 +24,7 @@ router = APIRouter(
 )
 async def init_vehicle_transfer(
         current_owner: CurrentOwnerDep,
-        email: Annotated[EmailStr, Body(embed=True, example='nikita.filatov@yandex.ru')],
+        email: Annotated[EmailStr, Body(embed=True)],
         vehicle_id: Annotated[int, Path(gt=0)],
         vehicles_service: VehiclesServiceDep
 ) -> Response:
