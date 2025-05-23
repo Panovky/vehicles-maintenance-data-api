@@ -1,7 +1,7 @@
 import enum
 from datetime import date
 from sqlalchemy import String, Date, Integer, Enum, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.base_model import Base
 
 
@@ -28,3 +28,5 @@ class MaintenanceRecord(Base):
     labor_cost: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_cost: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    photos = relationship('MaintenanceRecordPhoto', back_populates='maintenance_record')
+    documents = relationship('MaintenanceRecordDocument', back_populates='maintenance_record')
