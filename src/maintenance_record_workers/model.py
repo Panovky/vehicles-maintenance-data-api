@@ -1,5 +1,5 @@
 from sqlalchemy import Integer, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.base_model import Base
 
 
@@ -8,3 +8,7 @@ class MaintenanceRecordServiceWorker(Base):
 
     maintenance_record_id: Mapped[int] = mapped_column(Integer, ForeignKey('maintenance_records.id'))
     service_worker_id: Mapped[int] = mapped_column(Integer, ForeignKey('service_workers.id'))
+
+    maintenance_record = relationship('MaintenanceRecord', back_populates='service_workers')
+    service_worker = relationship('ServiceWorker', back_populates='maintenance_record_service_workers')
+

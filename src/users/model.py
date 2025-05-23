@@ -18,3 +18,4 @@ class User(Base):
     is_email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     roles = relationship('UserRole', back_populates='user')
+    service_workers = relationship('ServiceWorker', back_populates='user')
