@@ -12,4 +12,5 @@ class ServiceWorker(Base):
     rating: Mapped[float] = mapped_column(Float, nullable=False, default=0)
 
     user = relationship('User', back_populates='service_workers')
+    maintenance_records = relationship('MaintenanceRecord', back_populates='responsible')
     maintenance_record_service_workers = relationship('MaintenanceRecordServiceWorker', back_populates='service_worker')
