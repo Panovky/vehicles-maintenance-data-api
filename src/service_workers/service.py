@@ -8,7 +8,7 @@ from src.user_roles.repository import UserRolesRepository
 from src.user_roles.repository import UserRoleEnum
 from src.services.repository import ServicesRepository
 from .repository import ServiceWorkersRepository
-from .schemas import ServiceWorkerInvite
+from .schemas import ServiceWorkerInvite, ServiceWorkerRead
 
 
 class ServiceWorkersService:
@@ -84,3 +84,20 @@ class ServiceWorkersService:
             return RedirectResponse(url=f'http://localhost:4173/services/{service_id}')
 
         return RedirectResponse(url='http://localhost:4173/attach/invalid-token')
+
+    async def get_service_workers(self, service_id) -> list[ServiceWorkerRead]:
+        if not await self.services_repository.exists(id=service_id):
+            raise ServiceNotFoundException()
+
+        service_workers = await self.service_workers_repository.filter_by(service_id=service_id)
+        return [ServiceWorkerRead(
+            last_name=service_worker.user.last_name,
+            first_name=service_worker.user.first_name,
+            patronymic=service_worker.user.patronymic,
+            photo_path=service_worker.user.photo_path,
+            phone=service_worker.user.phone,
+            email=service_worker.user.email,
+            position=service_worker.position,
+            rating=service_worker.rating
+        ) for service_worker in service_workers]
+
