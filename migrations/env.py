@@ -23,7 +23,7 @@ from src.service_clients.model import ServiceClient
 from src.maintenance_records.model import MaintenanceRecord
 from src.maintenance_record_photos.model import MaintenanceRecordPhoto
 from src.maintenance_record_documents.model import MaintenanceRecordDocument
-from src.maintenance_record_workers.model import MaintenanceRecordServiceWorker
+from src.maintenance_record_service_workers.model import MaintenanceRecordServiceWorker
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
