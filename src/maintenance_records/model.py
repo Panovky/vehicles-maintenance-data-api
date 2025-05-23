@@ -31,4 +31,4 @@ class MaintenanceRecord(Base):
     responsible = relationship('ServiceWorker', back_populates='maintenance_records')
     photos = relationship('MaintenanceRecordPhoto', back_populates='maintenance_record')
     documents = relationship('MaintenanceRecordDocument', back_populates='maintenance_record')
-    service_workers = relationship('MaintenanceRecordServiceWorker', back_populates='maintenance_record')
+    maintenance_record_service_workers = relationship('MaintenanceRecordServiceWorker', back_populates='maintenance_record')

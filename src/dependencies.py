@@ -33,7 +33,7 @@ from src.service_workers.service import ServiceWorkersService
 from src.service_clients.repository import ServiceClientsRepository
 from src.service_clients.service import ServiceClientsService
 from src.maintenance_records.repository import MaintenanceRecordsRepository
-from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
+from src.maintenance_record_service_workers.repository import MaintenanceRecordWorkersRepository
 from src.maintenance_record_photos.repository import MaintenanceRecordPhotosRepository
 from src.maintenance_record_documents.repository import MaintenanceRecordDocumentsRepository
 from src.maintenance_records.service import MaintenanceRecordsService
