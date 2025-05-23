@@ -36,6 +36,7 @@ from src.maintenance_records.repository import MaintenanceRecordsRepository
 from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
 from src.maintenance_record_photos.repository import MaintenanceRecordPhotosRepository
 from src.maintenance_record_documents.repository import MaintenanceRecordDocumentsRepository
+from src.maintenance_records.service import MaintenanceRecordsService
 
 
 async def get_async_session() -> AsyncSession:
@@ -136,6 +137,9 @@ def get_checker_user_roles(required_roles: list[UserRoleEnum]):
 CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner]))]
 CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.manager]))]
 CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.admin]))]
+CurrentOwnerOrWorkerDep = Annotated[
+    UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner, UserRoleEnum.worker]))
+]
 
 
 def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
@@ -374,3 +378,20 @@ def get_maintenance_record_documents_repository(async_session: AsyncSessionDep) 
 MaintenanceRecordDocumentsRepositoryDep = Annotated[
     MaintenanceRecordDocumentsRepository, Depends(get_maintenance_record_documents_repository)
 ]
+
+
+def get_maintenance_records_service(
+        maintenance_records_repository: MaintenanceRecordsRepositoryDep,
+        maintenance_record_photos_repository: MaintenanceRecordPhotosRepositoryDep,
+        maintenance_record_documents_repository: MaintenanceRecordDocumentsRepositoryDep,
+        maintenance_record_workers_repository: MaintenanceRecordWorkersRepositoryDep
+) -> MaintenanceRecordsService:
+    return MaintenanceRecordsService(
+        maintenance_records_repository,
+        maintenance_record_photos_repository,
+        maintenance_record_documents_repository,
+        maintenance_record_workers_repository
+    )
+
+
+MaintenanceRecordsServiceDep = Annotated[MaintenanceRecordsService, Depends(get_maintenance_records_service)]
