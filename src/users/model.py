@@ -20,3 +20,7 @@ class User(Base):
     roles = relationship('UserRole', back_populates='user')
     service_clients = relationship('ServiceClient', back_populates='client')
     service_workers = relationship('ServiceWorker', back_populates='worker')
+    maintenance_record_workers = relationship('MaintenanceRecordWorker', back_populates='worker')
+    maintenance_records = relationship('MaintenanceRecord', back_populates='responsible')
+
+

@@ -15,11 +15,11 @@ class MaintenanceRecord(Base):
     __tablename__ = 'maintenance_records'
 
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    maintenance_performer: Mapped[MaintenancePerformerEnum] = mapped_column(
-        Enum(MaintenancePerformerEnum), nullable=False
-    )
+    maintenance_performer: Mapped[MaintenancePerformerEnum] = \
+        mapped_column(Enum(MaintenancePerformerEnum), nullable=False)
     service_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('services.id'), nullable=True, default=None)
-    responsible_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('service_workers.id'), nullable=True, default=None)
+    responsible_id: \
+        Mapped[int | None] = mapped_column(Integer, ForeignKey('users.id'), nullable=True, default=None)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     vehicle_id: Mapped[int] = mapped_column(Integer, ForeignKey('vehicles.id'))
     mileage: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -28,7 +28,7 @@ class MaintenanceRecord(Base):
     labor_cost: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_cost: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    responsible = relationship('ServiceWorker', back_populates='maintenance_records')
+    responsible = relationship('User', back_populates='maintenance_records')
     photos = relationship('MaintenanceRecordPhoto', back_populates='maintenance_record')
     documents = relationship('MaintenanceRecordDocument', back_populates='maintenance_record')
-    maintenance_record_service_workers = relationship('MaintenanceRecordServiceWorker', back_populates='maintenance_record')
+    maintenance_record_workers = relationship('MaintenanceRecordWorker', back_populates='maintenance_record')
