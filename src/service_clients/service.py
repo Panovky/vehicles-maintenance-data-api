@@ -97,6 +97,7 @@ class ServiceClientsService:
                 last_name=client.last_name,
                 first_name=client.first_name,
                 patronymic=client.patronymic,
+                photo_path=client.photo_path,
                 birthday=client.birthday,
                 phone=client.phone,
                 email=client.email,
