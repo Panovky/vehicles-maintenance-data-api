@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Annotated
 from src.user_roles.model import UserRoleEnum
@@ -9,8 +9,6 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Annotated[int, Field(example=1)]
-    created_at: datetime
-    updated_at: datetime
     last_name: Annotated[str, Field(example='Филатов')]
     first_name: Annotated[str, Field(example='Никита')]
     patronymic: Annotated[str | None, Field(example='Андреевич')]
