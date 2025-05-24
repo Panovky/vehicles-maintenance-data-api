@@ -2,7 +2,7 @@ from fastapi.responses import RedirectResponse
 from jwt.exceptions import InvalidTokenError
 from src.core.jwt_service import JWTService
 from src.core.email_service import EmailService
-from src.exceptions import ServiceNotFoundException, WorkerIsNotRegisteredException
+from src.exceptions import ServiceNotFoundException, WorkerIsNotRegisteredException, ServiceWorkerNotFoundException
 from src.users.repository import UsersRepository
 from src.user_roles.repository import UserRolesRepository
 from src.user_roles.repository import UserRoleEnum
@@ -85,20 +85,44 @@ class ServiceWorkersService:
 
         return RedirectResponse(url='http://localhost:4173/attach/invalid-token')
 
+    async def rate_service_worker(self, service_id: int, worker_id: int, rating: int) -> None:
+        if not await self.services_repository.exists(id=service_id):
+            raise ServiceNotFoundException()
+
+        if not await self.users_repository.exists(id=worker_id):
+            ServiceWorkerNotFoundException()
+
+        service_workers = await self.service_workers_repository.filter_by(service_id=service_id, worker_id=worker_id)
+        service_worker = service_workers[0]
+
+        ratings_sum = service_worker.ratings_sum + rating
+        ratings_count = service_worker.ratings_count + 1
+
+        await self.service_workers_repository.update(
+            service_worker.id,
+            {
+                'ratings_sum': ratings_sum,
+                'ratings_count': ratings_count,
+                'rating': ratings_sum / ratings_count
+            }
+        )
+
     async def get_service_workers(self, service_id) -> list[ServiceWorkerRead]:
         if not await self.services_repository.exists(id=service_id):
             raise ServiceNotFoundException()
 
         service_workers = await self.service_workers_repository.filter_by(service_id=service_id)
-        return [ServiceWorkerRead(
-            id=service_worker.id,
-            last_name=service_worker.user.last_name,
-            first_name=service_worker.user.first_name,
-            patronymic=service_worker.user.patronymic,
-            photo_path=service_worker.user.photo_path,
-            phone=service_worker.user.phone,
-            email=service_worker.user.email,
-            position=service_worker.position,
-            rating=service_worker.rating
-        ) for service_worker in service_workers]
+        return [
+            ServiceWorkerRead(
+                id=service_worker.worker.id,
+                last_name=service_worker.worker.last_name,
+                first_name=service_worker.worker.first_name,
+                patronymic=service_worker.worker.patronymic,
+                photo_path=service_worker.worker.photo_path,
+                phone=service_worker.worker.phone,
+                email=service_worker.worker.email,
+                position=service_worker.position,
+                rating=service_worker.rating
+            ) for service_worker in service_workers
+        ]
 
