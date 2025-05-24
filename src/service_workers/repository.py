@@ -10,6 +10,6 @@ class ServiceWorkersRepository(SQLAlchemyRepository):
         super().__init__(async_session, ServiceWorker)
 
     async def filter_by(self, **filters) -> list[ServiceWorker]:
-        stmt = select(ServiceWorker).options(joinedload(ServiceWorker.user)).filter_by(**filters)
+        stmt = select(ServiceWorker).options(joinedload(ServiceWorker.worker)).filter_by(**filters)
         res = await self.async_session.execute(stmt)
         return list(res.scalars())
