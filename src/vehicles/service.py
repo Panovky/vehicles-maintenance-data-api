@@ -1,4 +1,5 @@
 import aiofiles
+import uuid
 from jwt.exceptions import InvalidTokenError
 from pathlib import Path
 from fastapi import UploadFile
@@ -128,19 +129,18 @@ class VehiclesService:
         if await self.vehicles_repository.exists(registration_plate=data['registration_plate']):
             raise RegistrationPlateIsNotUniqueException()
 
-        data['color'] = data['color'].value
-        data['owner_id'] = owner_id
-
-        vehicle = await self.vehicles_repository.create(data)
         if photo:
-            photo_name = f'{vehicle.id}{Path(photo.filename).suffix}'
+            photo_name = f'{uuid.uuid4().hex}{Path(photo.filename).suffix}'
             photo_path = VEHICLES_PHOTOS_DIR / photo_name
             async with aiofiles.open(photo_path, 'wb') as buffer:
                 while chunk := await photo.read(1024):
                     await buffer.write(chunk)
-            vehicle = await self.vehicles_repository.update(
-                vehicle.id, {'photo_path': f'/static/vehicles/photos/{photo_name}'}
-            )
+            data['photo_path'] = f'/static/vehicles/photos/{photo_name}'
+
+        data['color'] = data['color'].value
+        data['owner_id'] = owner_id
+
+        vehicle = await self.vehicles_repository.create(data)
         return VehicleRead.model_validate(vehicle)
 
     async def get_owner_vehicles(self, owner_id: int) -> list[VehicleRead]:
