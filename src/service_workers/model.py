@@ -9,6 +9,8 @@ class ServiceWorker(Base):
     service_id: Mapped[int] = mapped_column(Integer, ForeignKey('services.id'))
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     position: Mapped[str] = mapped_column(String(100), nullable=False)
+    ratings_sum: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    ratings_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rating: Mapped[float] = mapped_column(Float, nullable=False, default=0)
 
     user = relationship('User', back_populates='service_workers')
