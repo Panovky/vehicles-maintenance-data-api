@@ -1,4 +1,3 @@
-from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated
 
@@ -8,8 +7,6 @@ class ServiceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Annotated[int, Field(example=1)]
-    created_at: datetime
-    updated_at: datetime
     name: Annotated[str, Field(example='ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "РЕСУРС-А"')]
     commercial_name: Annotated[str, Field(example='Бест Вей')]
     inn: Annotated[str, Field(example='7604394801')]

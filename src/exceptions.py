@@ -82,6 +82,14 @@ class ServiceNotFoundException(HTTPException):
         )
 
 
+class ServiceWorkerNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Сотрудник автосервиса с указанным id не найден.'
+        )
+
+
 class ServiceInnIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(

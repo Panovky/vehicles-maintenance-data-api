@@ -14,7 +14,5 @@ class UserRoleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Annotated[int, Field(example=1)]
-    created_at: datetime
-    updated_at: datetime
     user_id: Annotated[int, Field(example=1)]
     role: UserRoleEnum

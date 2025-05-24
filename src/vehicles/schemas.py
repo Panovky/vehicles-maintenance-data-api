@@ -1,4 +1,3 @@
-from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated
 from src.makes.schemas import MakeRead
@@ -14,8 +13,6 @@ class VehicleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Annotated[int, Field(example=1)]
-    created_at: datetime
-    updated_at: datetime
     owner_id: Annotated[int, Field(example=1)]
     photo_path: Annotated[str, Field(example='/static/vehicles/photos/123e4567e89b12d3a456426614174000.jpg')]
     make: MakeRead
