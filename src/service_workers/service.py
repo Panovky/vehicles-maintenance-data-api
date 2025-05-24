@@ -91,6 +91,7 @@ class ServiceWorkersService:
 
         service_workers = await self.service_workers_repository.filter_by(service_id=service_id)
         return [ServiceWorkerRead(
+            id=service_worker.id,
             last_name=service_worker.user.last_name,
             first_name=service_worker.user.first_name,
             patronymic=service_worker.user.patronymic,

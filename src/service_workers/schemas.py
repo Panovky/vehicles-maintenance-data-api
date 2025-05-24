@@ -13,6 +13,7 @@ class ServiceWorkerRead(BaseModel):
     """The model representing the service worker data to be returned to the client."""
     model_config = ConfigDict(from_attributes=True)
 
+    id: Annotated[int, Field(example=1)]
     last_name: Annotated[str, Field(example='Ягодкин')]
     first_name: Annotated[str, Field(example='Вячеслав')]
     patronymic: Annotated[str | None, Field(example='Андреевич')]
