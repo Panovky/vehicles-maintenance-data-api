@@ -128,18 +128,19 @@ class VehiclesService:
         if await self.vehicles_repository.exists(registration_plate=data['registration_plate']):
             raise RegistrationPlateIsNotUniqueException()
 
-        if photo:
-            photo_name = f'{data["vin"]}{Path(photo.filename).suffix}'
-            photo_path = VEHICLES_PHOTOS_DIR / photo_name
-            async with aiofiles.open(photo_path, 'wb') as buffer:
-                while chunk := await photo.read(1024):
-                    await buffer.write(chunk)
-            data['photo_path'] = f'/static/vehicles/photos/{photo_name}'
-
         data['color'] = data['color'].value
         data['owner_id'] = owner_id
 
         vehicle = await self.vehicles_repository.create(data)
+        if photo:
+            photo_name = f'{vehicle.id}{Path(photo.filename).suffix}'
+            photo_path = VEHICLES_PHOTOS_DIR / photo_name
+            async with aiofiles.open(photo_path, 'wb') as buffer:
+                while chunk := await photo.read(1024):
+                    await buffer.write(chunk)
+            vehicle = await self.vehicles_repository.update(
+                vehicle.id, {'photo_path': f'/static/vehicles/photos/{photo_name}'}
+            )
         return VehicleRead.model_validate(vehicle)
 
     async def get_owner_vehicles(self, owner_id: int) -> list[VehicleRead]:

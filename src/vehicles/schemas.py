@@ -17,7 +17,7 @@ class VehicleRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     owner_id: Annotated[int, Field(example=1)]
-    photo_path: Annotated[str, Field(example='/static/vehicles/photos/JHMCM56557C404453.jpg')]
+    photo_path: Annotated[str, Field(example='/static/vehicles/photos/1.jpg')]
     make: MakeRead
     model: ModelRead
     range: RangeRead
