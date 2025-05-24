@@ -1,3 +1,4 @@
+import uuid
 import aiofiles
 from pathlib import Path
 from fastapi import UploadFile
@@ -39,7 +40,7 @@ class MaintenanceRecordsService:
 
         if photos:
             for photo in photos:
-                photo_name = f'{maintenance_record.id}{Path(photo.filename).suffix}'
+                photo_name = f'{uuid.uuid4().hex}{Path(photo.filename).suffix}'
                 photo_path = MAINTENANCE_RECORDS_PHOTOS_DIR / photo_name
                 async with aiofiles.open(photo_path, 'wb') as buffer:
                     while chunk := await photo.read(1024):
@@ -51,7 +52,7 @@ class MaintenanceRecordsService:
 
         if documents:
             for document in documents:
-                document_name = f'{maintenance_record.id}{Path(document.filename).suffix}'
+                document_name = f'{uuid.uuid4().hex}{Path(document.filename).suffix}'
                 document_path = MAINTENANCE_RECORDS_DOCUMENTS_DIR / document_name
                 async with aiofiles.open(document_path, 'wb') as buffer:
                     while chunk := await document.read(1024):
@@ -62,7 +63,7 @@ class MaintenanceRecordsService:
                 })
 
         if service_workers_ids:
-            for service_worker_id in map(int, service_workers_ids.split(',')):
+            for service_worker_id in map(int, service_workers_ids.split(', ')):
                 await self.maintenance_record_workers_repository.create({
                     'maintenance_record_id': maintenance_record.id,
                     'service_worker_id': service_worker_id
@@ -77,6 +78,7 @@ class MaintenanceRecordsService:
             mileage=maintenance_record.mileage,
             service_id=maintenance_record.service_id,
             responsible=ServiceWorkerRead(
+                id=maintenance_record.responsible.id,
                 last_name=maintenance_record.responsible.user.last_name,
                 first_name=maintenance_record.responsible.user.first_name,
                 patronymic=maintenance_record.responsible.user.patronymic,
@@ -93,6 +95,7 @@ class MaintenanceRecordsService:
             photos=[MaintenanceRecordPhotoRead.model_validate(photo) for photo in maintenance_record.photos],
             documents=[MaintenanceRecordDocumentRead.model_validate(document) for document in maintenance_record.documents],
             service_workers=[ServiceWorkerRead(
+                id=maintenance_record_service_worker.service_worker.id,
                 last_name=maintenance_record_service_worker.service_worker.user.last_name,
                 first_name=maintenance_record_service_worker.service_worker.user.first_name,
                 patronymic=maintenance_record_service_worker.service_worker.user.patronymic,
