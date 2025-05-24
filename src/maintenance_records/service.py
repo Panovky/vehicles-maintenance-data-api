@@ -5,12 +5,14 @@ from fastapi import UploadFile
 from src.config import MAINTENANCE_RECORDS_PHOTOS_DIR, MAINTENANCE_RECORDS_DOCUMENTS_DIR
 from src.maintenance_record_photos.repository import MaintenanceRecordPhotosRepository
 from src.maintenance_record_documents.repository import MaintenanceRecordDocumentsRepository
-from src.maintenance_record_service_workers.repository import MaintenanceRecordWorkersRepository
+from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
+from src.service_workers.repository import ServiceWorkersRepository
 from src.service_workers.schemas import ServiceWorkerRead
 from src.maintenance_record_photos.schemas import MaintenanceRecordPhotoRead
 from src.maintenance_record_documents.schemas import MaintenanceRecordDocumentRead
 from .repository import MaintenanceRecordsRepository
 from .schemas import MaintenanceRecordRead
+from .model import MaintenanceRecord, MaintenancePerformerEnum
 
 
 class MaintenanceRecordsService:
@@ -19,7 +21,8 @@ class MaintenanceRecordsService:
         maintenance_records_repository: MaintenanceRecordsRepository,
         maintenance_record_photos_repository: MaintenanceRecordPhotosRepository,
         maintenance_record_documents_repository: MaintenanceRecordDocumentsRepository,
-        maintenance_record_workers_repository: MaintenanceRecordWorkersRepository
+        maintenance_record_workers_repository: MaintenanceRecordWorkersRepository,
+        service_workers_repository: ServiceWorkersRepository
     ):
         self.maintenance_records_repository: MaintenanceRecordsRepository = maintenance_records_repository
         self.maintenance_record_photos_repository: \
@@ -28,13 +31,73 @@ class MaintenanceRecordsService:
             MaintenanceRecordDocumentsRepository = maintenance_record_documents_repository
         self.maintenance_record_workers_repository: \
             MaintenanceRecordWorkersRepository = maintenance_record_workers_repository
+        self.service_workers_repository: ServiceWorkersRepository = service_workers_repository
+
+    async def get_maintenance_record_read(self, maintenance_record: MaintenanceRecord) -> MaintenanceRecordRead:
+        responsible = None
+        service_workers = None
+
+        if maintenance_record.maintenance_performer == MaintenancePerformerEnum.registered_service:
+            res = await self.service_workers_repository.filter_by(
+                service_id=maintenance_record.service_id,
+                worker_id=maintenance_record.responsible.id
+            )
+            service_worker = res[0]
+            responsible = ServiceWorkerRead(
+                id=service_worker.worker.id,
+                last_name=service_worker.worker.last_name,
+                first_name=service_worker.worker.first_name,
+                patronymic=service_worker.worker.patronymic,
+                photo_path=service_worker.worker.photo_path,
+                phone=service_worker.worker.phone,
+                email=service_worker.worker.email,
+                position=service_worker.position,
+                rating=service_worker.rating
+            )
+
+            service_workers = []
+            for maintenance_record_worker in maintenance_record.maintenance_record_workers:
+                res = await self.service_workers_repository.filter_by(
+                    service_id=maintenance_record.service_id,
+                    worker_id=maintenance_record_worker.worker_id
+                )
+                service_worker = res[0]
+                service_workers.append(ServiceWorkerRead(
+                    id=service_worker.worker.id,
+                    last_name=service_worker.worker.last_name,
+                    first_name=service_worker.worker.first_name,
+                    patronymic=service_worker.worker.patronymic,
+                    photo_path=service_worker.worker.photo_path,
+                    phone=service_worker.worker.phone,
+                    email=service_worker.worker.email,
+                    position=service_worker.position,
+                    rating=service_worker.rating
+                ))
+
+        return MaintenanceRecordRead(
+            title=maintenance_record.title,
+            maintenance_performer=maintenance_record.maintenance_performer,
+            date=maintenance_record.date,
+            vehicle_id=maintenance_record.vehicle_id,
+            mileage=maintenance_record.mileage,
+            service_id=maintenance_record.service_id,
+            responsible=responsible,
+            description=maintenance_record.description,
+            parts_cost=maintenance_record.parts_cost,
+            labor_cost=maintenance_record.labor_cost,
+            total_cost=maintenance_record.total_cost,
+            photos=[MaintenanceRecordPhotoRead.model_validate(photo) for photo in maintenance_record.photos],
+            documents=[MaintenanceRecordDocumentRead.model_validate(document) for document in
+                       maintenance_record.documents],
+            service_workers=service_workers
+        )
 
     async def create(
             self,
             data: dict,
             photos: list[UploadFile] | None,
             documents: list[UploadFile] | None,
-            service_workers_ids: str | None
+            workers_ids: str | None
     ) -> MaintenanceRecordRead:
         maintenance_record = await self.maintenance_records_repository.create(data)
 
@@ -62,48 +125,13 @@ class MaintenanceRecordsService:
                     'document_path': f'/static/maintenance_records/documents/{document_name}'
                 })
 
-        if service_workers_ids:
-            for service_worker_id in map(int, service_workers_ids.split(', ')):
+        if workers_ids:
+            for worker_id in map(int, workers_ids.split(', ')):
                 await self.maintenance_record_workers_repository.create({
                     'maintenance_record_id': maintenance_record.id,
-                    'service_worker_id': service_worker_id
+                    'worker_id': worker_id
                 })
 
-        maintenance_record = await self.maintenance_records_repository.get_by_id(maintenance_record.id)
-        return MaintenanceRecordRead(
-            title=maintenance_record.title,
-            maintenance_performer=maintenance_record.maintenance_performer,
-            date=maintenance_record.date,
-            vehicle_id=maintenance_record.vehicle_id,
-            mileage=maintenance_record.mileage,
-            service_id=maintenance_record.service_id,
-            responsible=ServiceWorkerRead(
-                id=maintenance_record.responsible.id,
-                last_name=maintenance_record.responsible.user.last_name,
-                first_name=maintenance_record.responsible.user.first_name,
-                patronymic=maintenance_record.responsible.user.patronymic,
-                photo_path=maintenance_record.responsible.user.photo_path,
-                phone=maintenance_record.responsible.user.phone,
-                email=maintenance_record.responsible.user.email,
-                position=maintenance_record.responsible.position,
-                rating=maintenance_record.responsible.rating
-            ),
-            description=maintenance_record.description,
-            parts_cost=maintenance_record.parts_cost,
-            labor_cost=maintenance_record.labor_cost,
-            total_cost=maintenance_record.total_cost,
-            photos=[MaintenanceRecordPhotoRead.model_validate(photo) for photo in maintenance_record.photos],
-            documents=[MaintenanceRecordDocumentRead.model_validate(document) for document in maintenance_record.documents],
-            service_workers=[ServiceWorkerRead(
-                id=maintenance_record_service_worker.service_worker.id,
-                last_name=maintenance_record_service_worker.service_worker.user.last_name,
-                first_name=maintenance_record_service_worker.service_worker.user.first_name,
-                patronymic=maintenance_record_service_worker.service_worker.user.patronymic,
-                photo_path=maintenance_record_service_worker.service_worker.user.photo_path,
-                phone=maintenance_record_service_worker.service_worker.user.phone,
-                email=maintenance_record_service_worker.service_worker.user.email,
-                position=maintenance_record_service_worker.service_worker.position,
-                rating=maintenance_record_service_worker.service_worker.rating
-            ) for maintenance_record_service_worker in maintenance_record.maintenance_record_service_workers]
-        )
+        return await self.get_maintenance_record_read(maintenance_record)
+
 

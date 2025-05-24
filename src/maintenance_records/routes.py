@@ -31,12 +31,12 @@ async def create_maintenance_record(
         service_id: Annotated[int | None, Form(gt=0)] = None,
         responsible_id: Annotated[int | None, Form(gt=0)] = None,
         description: Annotated[str | None, Form(max_length=2000)] = None,
-        parts_cost: Annotated[int, Form(gt=0)] = 0,
-        labor_cost: Annotated[int, Form(gt=0)] = 0,
-        total_cost: Annotated[int, Form(gt=0)] = 0,
+        parts_cost: Annotated[int, Form(gte=0)] = 0,
+        labor_cost: Annotated[int, Form(gte=0)] = 0,
+        total_cost: Annotated[int, Form(gte=0)] = 0,
         photos: Annotated[list[UploadFile] | None, File()] = None,
         documents: Annotated[list[UploadFile] | None, File()] = None,
-        service_workers_ids: Annotated[str, Form()] = None
+        workers_ids: Annotated[str, Form()] = None
 ) -> MaintenanceRecordRead:
     return await maintenance_records_service.create(
         {
@@ -54,5 +54,5 @@ async def create_maintenance_record(
         },
         photos,
         documents,
-        service_workers_ids
+        workers_ids
     )
