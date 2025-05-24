@@ -3,12 +3,12 @@ from jwt.exceptions import InvalidTokenError
 from src.core.jwt_service import JWTService
 from src.core.email_service import EmailService
 from src.exceptions import ServiceNotFoundException, ClientIsNotRegisteredException
-from src.users.schemas import UserRead
 from src.users.repository import UsersRepository
 from src.user_roles.repository import UserRolesRepository
 from src.user_roles.repository import UserRoleEnum
 from src.services.repository import ServicesRepository
 from .repository import ServiceClientsRepository
+from .schemas import ServiceClientRead
 
 
 class ServiceClientsService:
@@ -81,24 +81,19 @@ class ServiceClientsService:
 
         return RedirectResponse(url='http://localhost:4173/attach/invalid-token')
 
-    async def get_service_clients(self, service_id: int) -> list[UserRead]:
+    async def get_service_clients(self, service_id: int) -> list[ServiceClientRead]:
         if not await self.services_repository.exists(id=service_id):
             raise ServiceNotFoundException()
 
         service_clients = await self.service_clients_repository.filter_by(service_id=service_id)
-
-        clients = []
-        for service_client in service_clients:
-            client = await self.users_repository.get_by_id(service_client.client_id)
-            clients.append(UserRead(
-                id=client.id,
-                last_name=client.last_name,
-                first_name=client.first_name,
-                patronymic=client.patronymic,
-                photo_path=client.photo_path,
-                birthday=client.birthday,
-                phone=client.phone,
-                email=client.email,
-                roles=[role.role for role in client.roles]
-            ))
-        return clients
+        return [
+            ServiceClientRead(
+                id=service_client.client.id,
+                last_name=service_client.client.last_name,
+                first_name=service_client.client.first_name,
+                patronymic=service_client.client.patronymic,
+                photo_path=service_client.client.photo_path,
+                phone=service_client.client.phone,
+                email=service_client.client.email
+            ) for service_client in service_clients
+        ]
