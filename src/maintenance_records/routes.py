@@ -1,7 +1,7 @@
 import datetime
-from fastapi import APIRouter, status, UploadFile, File, Form
+from fastapi import APIRouter, status, UploadFile, File, Form, Path
 from typing import Annotated
-from src.dependencies import CurrentOwnerOrWorkerDep, MaintenanceRecordsServiceDep
+from src.dependencies import CurrentOwnerOrWorkerDep, MaintenanceRecordsServiceDep, CurrentUserByAccessTokenDep
 from .model import MaintenancePerformerEnum
 from .schemas import MaintenanceRecordRead
 
@@ -9,6 +9,23 @@ router = APIRouter(
     tags=['maintenance records']
 )
 
+
+@router.get(
+    '/vehicles/{vehicle_id}/maintenance-records',
+    responses={
+        200: {'description': 'Maintenance records successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Vehicle not found'}
+    },
+    summary='Get a list of maintenance records by vehicle id'
+)
+async def get_maintenance_records(
+        current_user: CurrentUserByAccessTokenDep,
+        vehicle_id: Annotated[int, Path(gt=0)],
+        maintenance_records_service: MaintenanceRecordsServiceDep
+) -> list[MaintenanceRecordRead]:
+    return await maintenance_records_service.get_maintenance_records(vehicle_id)
 
 @router.post(
     '/maintenance-records',
@@ -31,12 +48,12 @@ async def create_maintenance_record(
         service_id: Annotated[int | None, Form(gt=0)] = None,
         responsible_id: Annotated[int | None, Form(gt=0)] = None,
         description: Annotated[str | None, Form(max_length=2000)] = None,
-        parts_cost: Annotated[int, Form(gt=0)] = 0,
-        labor_cost: Annotated[int, Form(gt=0)] = 0,
-        total_cost: Annotated[int, Form(gt=0)] = 0,
+        parts_cost: Annotated[int, Form(gte=0)] = 0,
+        labor_cost: Annotated[int, Form(gte=0)] = 0,
+        total_cost: Annotated[int, Form(gte=0)] = 0,
         photos: Annotated[list[UploadFile] | None, File()] = None,
         documents: Annotated[list[UploadFile] | None, File()] = None,
-        service_workers_ids: Annotated[str, Form()] = None
+        workers_ids: Annotated[str, Form()] = None
 ) -> MaintenanceRecordRead:
     return await maintenance_records_service.create(
         {
@@ -54,5 +71,6 @@ async def create_maintenance_record(
         },
         photos,
         documents,
-        service_workers_ids
+        workers_ids
     )
+
