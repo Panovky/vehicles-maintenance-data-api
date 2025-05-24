@@ -78,7 +78,7 @@ class ServiceWorkersService:
 
             await self.service_workers_repository.create({
                 'service_id': service_id,
-                'worker_id': user.id,
+                'user_id': user.id,
                 'position': position
             })
             return RedirectResponse(url=f'http://localhost:4173/services/{service_id}')
