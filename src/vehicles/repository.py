@@ -36,6 +36,27 @@ class VehiclesRepository(SQLAlchemyRepository):
         )
         return vehicle
 
+    async def update(self, _id: int, data: dict) -> Vehicle | None:
+        vehicle = await self.get_by_id(_id)
+        if not vehicle:
+            return None
+
+        for key, value in data.items():
+            setattr(vehicle, key, value)
+
+        await self.async_session.commit()
+        await self.async_session.refresh(
+            vehicle,
+            [
+                'make',
+                'model',
+                'range',
+                'generation',
+                'configuration'
+            ]
+        )
+        return vehicle
+
     async def filter_by(self, **filters) -> list[Vehicle]:
         stmt = select(Vehicle).options(
             joinedload(Vehicle.make),

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Path, status, Response
 from fastapi.responses import RedirectResponse
-from src.dependencies import CurrentManagerDep, ServiceWorkersServiceDep
-from .schemas import ServiceWorkerInvite
+from src.dependencies import CurrentManagerDep, ServiceWorkersServiceDep, CurrentUserByAccessTokenDep
 from typing import Annotated
+from .schemas import ServiceWorkerInvite, ServiceWorkerRead
 
 router = APIRouter(
     tags=['service workers']
@@ -41,3 +41,21 @@ async def attach_worker(
         service_workers_service: ServiceWorkersServiceDep
 ) -> RedirectResponse:
     return await service_workers_service.attach_worker(service_id, token)
+
+
+@router.get(
+    '/services/{service_id}/workers',
+    responses={
+        200: {'description': 'Service workers successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Service not found'}
+    },
+    summary='Get a list of service workers by the service id'
+)
+async def get_service_workers(
+        current_user: CurrentUserByAccessTokenDep,
+        service_id: Annotated[int, Path(gt=0)],
+        service_workers_service: ServiceWorkersServiceDep
+) -> list[ServiceWorkerRead]:
+    return await service_workers_service.get_service_workers(service_id)

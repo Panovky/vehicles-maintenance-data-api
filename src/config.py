@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).parent.parent
 STATIC_DIR = BASE_DIR / 'static'
 VEHICLES_PHOTOS_DIR = STATIC_DIR / 'vehicles' / 'photos'
 USERS_PHOTOS_DIR = STATIC_DIR / 'users' / 'photos'
+MAINTENANCE_RECORDS_PHOTOS_DIR = STATIC_DIR / 'maintenance_records' / 'photos'
+MAINTENANCE_RECORDS_DOCUMENTS_DIR = STATIC_DIR / 'maintenance_records' / 'documents'
 
 
 class JWTSettings(BaseModel):

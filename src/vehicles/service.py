@@ -1,4 +1,5 @@
 import aiofiles
+import uuid
 from jwt.exceptions import InvalidTokenError
 from pathlib import Path
 from fastapi import UploadFile
@@ -129,7 +130,7 @@ class VehiclesService:
             raise RegistrationPlateIsNotUniqueException()
 
         if photo:
-            photo_name = f'{data["vin"]}{Path(photo.filename).suffix}'
+            photo_name = f'{uuid.uuid4().hex}{Path(photo.filename).suffix}'
             photo_path = VEHICLES_PHOTOS_DIR / photo_name
             async with aiofiles.open(photo_path, 'wb') as buffer:
                 while chunk := await photo.read(1024):

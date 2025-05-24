@@ -14,6 +14,7 @@ from src.vehicles.routes import router as vehicles_router
 from src.services.routes import router as services_router
 from src.service_workers.routes import router as service_workers_router
 from src.service_clients.routes import router as service_clients_router
+from src.maintenance_records.routes import router as maintenance_record_router
 
 app = FastAPI(strict_slashes=False)
 
@@ -25,7 +26,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount('/static', StaticFiles(directory='static'), name='static')
 
 app.include_router(auth_router)
 app.include_router(users_router)
@@ -40,3 +41,4 @@ app.include_router(vehicles_router)
 app.include_router(services_router)
 app.include_router(service_workers_router)
 app.include_router(service_clients_router)
+app.include_router(maintenance_record_router)
