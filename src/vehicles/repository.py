@@ -10,7 +10,7 @@ class VehiclesRepository(SQLAlchemyRepository):
         super().__init__(async_session, Vehicle)
 
     async def get_by_id(self, _id: int) -> Vehicle | None:
-        stmt = select(Vehicle).options(
+        stmt = select(Vehicle).where(Vehicle.id == _id).options(
             joinedload(Vehicle.make),
             joinedload(Vehicle.model),
             joinedload(Vehicle.range),
