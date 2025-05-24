@@ -33,7 +33,7 @@ from src.service_workers.service import ServiceWorkersService
 from src.service_clients.repository import ServiceClientsRepository
 from src.service_clients.service import ServiceClientsService
 from src.maintenance_records.repository import MaintenanceRecordsRepository
-from src.maintenance_record_service_workers.repository import MaintenanceRecordWorkersRepository
+from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
 from src.maintenance_record_photos.repository import MaintenanceRecordPhotosRepository
 from src.maintenance_record_documents.repository import MaintenanceRecordDocumentsRepository
 from src.maintenance_records.service import MaintenanceRecordsService
@@ -387,13 +387,15 @@ def get_maintenance_records_service(
         maintenance_records_repository: MaintenanceRecordsRepositoryDep,
         maintenance_record_photos_repository: MaintenanceRecordPhotosRepositoryDep,
         maintenance_record_documents_repository: MaintenanceRecordDocumentsRepositoryDep,
-        maintenance_record_workers_repository: MaintenanceRecordWorkersRepositoryDep
+        maintenance_record_workers_repository: MaintenanceRecordWorkersRepositoryDep,
+        service_workers_repository: ServiceWorkersRepositoryDep
 ) -> MaintenanceRecordsService:
     return MaintenanceRecordsService(
         maintenance_records_repository,
         maintenance_record_photos_repository,
         maintenance_record_documents_repository,
-        maintenance_record_workers_repository
+        maintenance_record_workers_repository,
+        service_workers_repository
     )
 
 
