@@ -136,9 +136,13 @@ def get_checker_user_roles(required_roles: list[UserRoleEnum]):
 
 CurrentOwnerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner]))]
 CurrentManagerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.manager]))]
+CurrentWorkerDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.worker]))]
 CurrentAdminDep = Annotated[UserRead, Depends(get_checker_user_roles([UserRoleEnum.admin]))]
 CurrentOwnerOrWorkerDep = Annotated[
     UserRead, Depends(get_checker_user_roles([UserRoleEnum.owner, UserRoleEnum.worker]))
+]
+CurrentManagerOrWorkerDep = Annotated[
+    UserRead, Depends(get_checker_user_roles([UserRoleEnum.manager, UserRoleEnum.worker]))
 ]
 
 
@@ -147,7 +151,6 @@ def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
 
 
 MakesRepositoryDep = Annotated[MakesRepository, Depends(get_makes_repository)]
-
 
 def get_makes_service(makes_repository: MakesRepositoryDep) -> MakesService:
     return MakesService(makes_repository)

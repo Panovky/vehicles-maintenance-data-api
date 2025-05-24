@@ -82,15 +82,8 @@ class AuthService:
         token = self.jwt_service.get_verify_email_token(user.email, data['role'].value)
         url = f'http://localhost:8000/auth/verify-email?token={token}'
 
-        text = self.email_service.get_text_to_verify_email(
-            name=name,
-            url=url
-        )
-
-        html = self.email_service.get_html_to_verify_email(
-            name=name,
-            url=url
-        )
+        text = self.email_service.get_text_to_verify_email(name=name, url=url)
+        html = self.email_service.get_html_to_verify_email(name=name, url=url)
 
         self.email_service.send_email(
             receiver_address=user.email,

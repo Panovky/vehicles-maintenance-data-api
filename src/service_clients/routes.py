@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Path, status, Response, Body
 from fastapi.responses import RedirectResponse
 from pydantic import EmailStr
-from src.dependencies import CurrentManagerDep, ServiceClientsServiceDep
+from src.dependencies import CurrentManagerDep, ServiceClientsServiceDep, CurrentManagerOrWorkerDep
 from typing import Annotated
 from src.users.schemas import UserRead
 
@@ -55,7 +55,7 @@ async def attach_client(
     summary='Get all service clients'
 )
 async def get_service_clients(
-        current_manager: CurrentManagerDep,
+        current_manager: CurrentManagerOrWorkerDep,
         service_id: Annotated[int, Path(gt=0)],
         service_clients_service: ServiceClientsServiceDep
 ) -> list[UserRead]:
