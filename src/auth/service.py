@@ -1,4 +1,5 @@
 import aiofiles
+import uuid
 import bcrypt
 from pathlib import Path
 from fastapi import UploadFile
@@ -66,15 +67,16 @@ class AuthService:
         data_dict['password_hash'] = password_hash
         data_dict['is_email_verified'] = False
 
-        user = await self.users_repository.create(data_dict)
-        await self.user_roles_repository.assign_role(user.id, data['role'])
         if photo:
-            photo_name = f'{user.id}{Path(photo.filename).suffix}'
+            photo_name = f'{uuid.uuid4().hex}{Path(photo.filename).suffix}'
             photo_path = USERS_PHOTOS_DIR / photo_name
             async with aiofiles.open(photo_path, 'wb') as buffer:
                 while chunk := await photo.read(1024):
                     await buffer.write(chunk)
-            await self.users_repository.update(user.id, {'photo_path': f'/static/users/photos/{photo_name}'})
+            data_dict['photo_path'] = f'/static/users/photos/{photo_name}'
+
+        user = await self.users_repository.create(data_dict)
+        await self.user_roles_repository.assign_role(user.id, data['role'])
 
         name = f'{user.first_name}{" " + patronymic if (patronymic := user.patronymic) else ""}'
         token = self.jwt_service.get_verify_email_token(user.email, data['role'].value)
