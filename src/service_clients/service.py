@@ -92,8 +92,6 @@ class ServiceClientsService:
             client = await self.users_repository.get_by_id(service_client.client_id)
             clients.append(UserRead(
                 id=client.id,
-                created_at=client.created_at,
-                updated_at=client.updated_at,
                 last_name=client.last_name,
                 first_name=client.first_name,
                 patronymic=client.patronymic,
