@@ -8,8 +8,10 @@ from src.maintenance_record_documents.repository import MaintenanceRecordDocumen
 from src.maintenance_record_workers.repository import MaintenanceRecordWorkersRepository
 from src.service_workers.repository import ServiceWorkersRepository
 from src.service_workers.schemas import ServiceWorkerRead
+from src.vehicles.repository import VehiclesRepository
 from src.maintenance_record_photos.schemas import MaintenanceRecordPhotoRead
 from src.maintenance_record_documents.schemas import MaintenanceRecordDocumentRead
+from src.exceptions import VehicleNotFoundException
 from .repository import MaintenanceRecordsRepository
 from .schemas import MaintenanceRecordRead
 from .model import MaintenanceRecord, MaintenancePerformerEnum
@@ -22,7 +24,8 @@ class MaintenanceRecordsService:
         maintenance_record_photos_repository: MaintenanceRecordPhotosRepository,
         maintenance_record_documents_repository: MaintenanceRecordDocumentsRepository,
         maintenance_record_workers_repository: MaintenanceRecordWorkersRepository,
-        service_workers_repository: ServiceWorkersRepository
+        service_workers_repository: ServiceWorkersRepository,
+        vehicles_repository: VehiclesRepository
     ):
         self.maintenance_records_repository: MaintenanceRecordsRepository = maintenance_records_repository
         self.maintenance_record_photos_repository: \
@@ -32,6 +35,7 @@ class MaintenanceRecordsService:
         self.maintenance_record_workers_repository: \
             MaintenanceRecordWorkersRepository = maintenance_record_workers_repository
         self.service_workers_repository: ServiceWorkersRepository = service_workers_repository
+        self.vehicles_repository: VehiclesRepository = vehicles_repository
 
     async def get_maintenance_record_read(self, maintenance_record: MaintenanceRecord) -> MaintenanceRecordRead:
         responsible = None
@@ -91,6 +95,15 @@ class MaintenanceRecordsService:
                        maintenance_record.documents],
             service_workers=service_workers
         )
+
+    async def get_maintenance_records(self, vehicle_id: int) -> list[MaintenanceRecordRead]:
+        if not await self.vehicles_repository.exists(id=vehicle_id):
+            raise VehicleNotFoundException()
+
+        maintenance_records = await self.maintenance_records_repository.filter_by(vehicle_id=vehicle_id)
+        return [
+            await self.get_maintenance_record_read(maintenance_record) for maintenance_record in maintenance_records
+        ]
 
     async def create(
             self,

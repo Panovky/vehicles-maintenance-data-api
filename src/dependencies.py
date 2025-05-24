@@ -388,14 +388,16 @@ def get_maintenance_records_service(
         maintenance_record_photos_repository: MaintenanceRecordPhotosRepositoryDep,
         maintenance_record_documents_repository: MaintenanceRecordDocumentsRepositoryDep,
         maintenance_record_workers_repository: MaintenanceRecordWorkersRepositoryDep,
-        service_workers_repository: ServiceWorkersRepositoryDep
+        service_workers_repository: ServiceWorkersRepositoryDep,
+        vehicles_repository: VehiclesRepositoryDep
 ) -> MaintenanceRecordsService:
     return MaintenanceRecordsService(
         maintenance_records_repository,
         maintenance_record_photos_repository,
         maintenance_record_documents_repository,
         maintenance_record_workers_repository,
-        service_workers_repository
+        service_workers_repository,
+        vehicles_repository
     )
 
 

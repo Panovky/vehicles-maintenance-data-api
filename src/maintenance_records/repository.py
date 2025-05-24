@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from src.core.sqlalchemy_repository import SQLAlchemyRepository
 from .model import MaintenanceRecord
 
@@ -10,11 +10,21 @@ class MaintenanceRecordsRepository(SQLAlchemyRepository):
         super().__init__(async_session, MaintenanceRecord)
 
     async def get_by_id(self, _id: int) -> MaintenanceRecord | None:
-        stmt = select(MaintenanceRecord).options(
+        stmt = select(MaintenanceRecord).where(MaintenanceRecord.id == _id).options(
             joinedload(MaintenanceRecord.responsible),
-            joinedload(MaintenanceRecord.photos),
-            joinedload(MaintenanceRecord.documents),
-            joinedload(MaintenanceRecord.maintenance_record_workers)
+            selectinload(MaintenanceRecord.photos),
+            selectinload(MaintenanceRecord.documents),
+            selectinload(MaintenanceRecord.maintenance_record_workers)
         )
         maintenance_record = await self.async_session.execute(stmt)
         return maintenance_record.scalar()
+
+    async def filter_by(self, **filters) -> list[MaintenanceRecord]:
+        stmt = select(MaintenanceRecord).filter_by(**filters).options(
+            joinedload(MaintenanceRecord.responsible),
+            selectinload(MaintenanceRecord.photos),
+            selectinload(MaintenanceRecord.documents),
+            selectinload(MaintenanceRecord.maintenance_record_workers)
+        )
+        maintenance_records = await self.async_session.execute(stmt)
+        return list(maintenance_records.scalars())
