@@ -1,7 +1,9 @@
 import datetime
-from fastapi import APIRouter, status, UploadFile, File, Form, Path
+from fastapi import APIRouter, status, UploadFile, File, Form, Path, Response
 from typing import Annotated
-from src.dependencies import CurrentOwnerOrWorkerDep, MaintenanceRecordsServiceDep, CurrentUserByAccessTokenDep
+from src.dependencies import (
+    CurrentOwnerOrWorkerDep, MaintenanceRecordsServiceDep, CurrentUserByAccessTokenDep, CurrentWorkerDep
+)
 from .model import MaintenancePerformerEnum
 from .schemas import MaintenanceRecordRead
 
@@ -26,6 +28,25 @@ async def get_maintenance_records(
         maintenance_records_service: MaintenanceRecordsServiceDep
 ) -> list[MaintenanceRecordRead]:
     return await maintenance_records_service.get_maintenance_records(vehicle_id)
+
+
+@router.post(
+    '/maintenance-records/{maintenance_record_id}/purchase-orders',
+    responses={
+        200: {'description': 'Purchase order successfully received'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Maintenance record not found'}
+    },
+    summary='Get a purchase order for maintenance record'
+)
+async def get_purchase_order(
+        current_worker: CurrentWorkerDep,
+        maintenance_record_id: Annotated[int, Path(gt=0)],
+        maintenance_records_service: MaintenanceRecordsServiceDep
+) -> Response:
+    return await maintenance_records_service.get_purchase_order(maintenance_record_id)
+
 
 @router.post(
     '/maintenance-records',
@@ -73,4 +94,3 @@ async def create_maintenance_record(
         documents,
         workers_ids
     )
-

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from src.core.jwt_service import JWTService
 from src.core.email_service import EmailService
+from src.core.pdf_service import PDFService
 from src.database import async_session_maker
 from src.exceptions import AccessDeniedException
 from src.users.repository import UsersRepository
@@ -59,6 +60,13 @@ def get_email_service() -> EmailService:
 
 
 EmailServiceDep = Annotated[EmailService, Depends(get_email_service)]
+
+
+def get_pdf_service() -> PDFService:
+    return PDFService()
+
+
+PDFServiceDep = Annotated[PDFService, Depends(get_pdf_service)]
 
 
 def get_users_repository(async_session: AsyncSessionDep) -> UsersRepository:
@@ -388,16 +396,22 @@ def get_maintenance_records_service(
         maintenance_record_photos_repository: MaintenanceRecordPhotosRepositoryDep,
         maintenance_record_documents_repository: MaintenanceRecordDocumentsRepositoryDep,
         maintenance_record_workers_repository: MaintenanceRecordWorkersRepositoryDep,
+        services_repository: ServicesRepositoryDep,
         service_workers_repository: ServiceWorkersRepositoryDep,
-        vehicles_repository: VehiclesRepositoryDep
+        users_repository: UsersRepositoryDep,
+        vehicles_repository: VehiclesRepositoryDep,
+        pdf_service: PDFServiceDep
 ) -> MaintenanceRecordsService:
     return MaintenanceRecordsService(
         maintenance_records_repository,
         maintenance_record_photos_repository,
         maintenance_record_documents_repository,
         maintenance_record_workers_repository,
+        services_repository,
         service_workers_repository,
-        vehicles_repository
+        users_repository,
+        vehicles_repository,
+        pdf_service
     )
 
 

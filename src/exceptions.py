@@ -211,3 +211,10 @@ class OwnerIsNotRegisteredException(HTTPException):
                    'поскольку он еще не зарегистрирован в системе.'
         )
 
+
+class MaintenanceRecordNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Запись о техническом обслуживании автомобиля с указанным id не найдена.'
+        )
