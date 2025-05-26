@@ -174,4 +174,5 @@ class MaintenanceRecordsService:
                     'worker_id': worker_id
                 })
 
+        maintenance_record = await self.maintenance_records_repository.get_by_id(maintenance_record.id)
         return await self.get_maintenance_record_read(maintenance_record)

@@ -18,7 +18,7 @@ class MaintenanceRecordRead(BaseModel):
     vehicle_id: Annotated[int, Field(example=1)]
     mileage: Annotated[int, Field(example=180000)]
     service_id: Annotated[int | None, Field(example=1)]
-    responsible: ServiceWorkerRead
+    responsible: ServiceWorkerRead | None
     description: str | None
     parts_cost: Annotated[int, Field(example=5300)]
     labor_cost: Annotated[int, Field(example=2500)]
