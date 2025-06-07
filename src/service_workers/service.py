@@ -85,6 +85,18 @@ class ServiceWorkersService:
 
         return RedirectResponse(url='http://localhost:4173/attach/invalid-token')
 
+    async def detach_worker(self, service_id: int, worker_id: int) -> None:
+        if not await self.services_repository.exists(id=service_id):
+            raise ServiceNotFoundException()
+
+        if not await self.users_repository.exists(id=worker_id):
+            raise ServiceWorkerNotFoundException()
+
+        res = await self.service_workers_repository.filter_by(service_id=service_id, worker_id=worker_id)
+        service_worker = res[0]
+
+        await self.service_workers_repository.delete(service_worker.id)
+
     async def rate_service_worker(self, service_id: int, worker_id: int, rating: int) -> None:
         if not await self.services_repository.exists(id=service_id):
             raise ServiceNotFoundException()

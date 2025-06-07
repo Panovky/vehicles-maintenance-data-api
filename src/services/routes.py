@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Path, status
 from src.dependencies import CurrentManagerDep, CurrentUserByAccessTokenDep, ServicesServiceDep
-from .schemas import ServiceCreate, ServiceRead
+from .schemas import ServiceCreate, ServiceRead, ServiceUpdate
 from typing import Annotated
 
 router = APIRouter(
@@ -40,6 +40,26 @@ async def get_service(
         services_service: ServicesServiceDep
 ) -> ServiceRead:
     return await services_service.get_by_id(service_id)
+
+
+@router.patch(
+    '/{service_id}',
+    responses={
+        200: {'description': 'Service successfully updated'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Service not found'}
+    },
+    summary='Update the service'
+)
+async def update_service(
+        current_manager: CurrentManagerDep,
+        service_id: Annotated[int, Path(gt=0)],
+        data: ServiceUpdate,
+        services_service: ServicesServiceDep
+) -> ServiceRead:
+    service = await services_service.update(service_id, data)
+    return service
 
 
 @router.get(
