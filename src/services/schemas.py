@@ -34,3 +34,22 @@ class ServiceCreate(BaseModel):
         Field(max_length=255, example='Пн-Пт - 8:00-20:00 Сб, Вс - 9:00-18:00 Работаем без выходных')
     ]
     website: Annotated[str | None, Field(max_length=255, default=None, example='https://bestway76.ru/')]
+
+
+class ServiceUpdate(BaseModel):
+    """The model representing the service data needed to update information in the database."""
+    commercial_name: Annotated[str | None, Field(max_length=255, default=None, example='Бест Вей')]
+    address: Annotated[
+        str | None,
+        Field(max_length=255, default=None, example='Ярославская область, г. Ярославль, ул. Нефтяников, 17А')
+    ]
+    summary: Annotated[
+        str | None,
+        Field(max_length=500, default=None, example='Сервис по ремонту авто любой сложности.')
+    ]
+    timetable: Annotated[
+        str | None,
+        Field(max_length=255, default=None, example='Пн-Пт - 8:00-20:00 Сб, Вс - 9:00-18:00 Работаем без выходных')
+    ]
+    website: Annotated[str | None, Field(max_length=255, default=None, example='https://bestway76.ru/')]
+
