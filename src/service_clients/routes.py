@@ -44,6 +44,27 @@ async def attach_client(
     return await service_clients_service.attach_client(service_id, token)
 
 
+@router.delete(
+    '/services/{service_id}/clients/{client_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        204: {'description': 'The client successfully detached from the service'},
+        401: {'description': 'Access token are invalid'},
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Service or client not found'}
+    },
+    summary='Detach the client from the service'
+)
+async def detach_client(
+        current_manager: CurrentManagerDep,
+        service_id: Annotated[int, Path(gt=0)],
+        client_id: Annotated[int, Path(gt=0)],
+        service_clients_service: ServiceClientsServiceDep
+) -> Response:
+    await service_clients_service.detach_client(service_id, client_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get(
     '/services/{service_id}/clients',
     responses={
