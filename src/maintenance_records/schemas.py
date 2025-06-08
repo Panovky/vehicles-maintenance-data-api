@@ -10,6 +10,7 @@ from src.service_workers.schemas import ServiceWorkerRead
 class MaintenanceRecordRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    id: Annotated[int, Field(example=1)]
     title: Annotated[str, Field(example='Замена масла и масляного фильтра')]
     maintenance_performer: Annotated[
         MaintenancePerformerEnum, Field(example=MaintenancePerformerEnum.registered_service)
