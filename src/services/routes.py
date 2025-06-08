@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, status
+from fastapi import APIRouter, Path, status, Query
 from src.dependencies import CurrentManagerDep, CurrentUserByAccessTokenDep, ServicesServiceDep
 from .schemas import ServiceCreate, ServiceRead, ServiceUpdate
 from typing import Annotated
@@ -73,9 +73,11 @@ async def update_service(
 )
 async def get_services(
         current_user: CurrentUserByAccessTokenDep,
-        services_service: ServicesServiceDep
+        services_service: ServicesServiceDep,
+        worker_id: Annotated[int | None, Query(gt=0, description='To get worker services')] = None,
+        client_id: Annotated[int | None, Query(gt=0, description='To get client services')] = None
 ) -> list[ServiceRead]:
-    return await services_service.get_all()
+    return await services_service.get_all(worker_id, client_id)
 
 
 @router.post(
