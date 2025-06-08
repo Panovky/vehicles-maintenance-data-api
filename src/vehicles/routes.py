@@ -1,8 +1,8 @@
-from fastapi import APIRouter, status, Form, UploadFile, File, Path, Response, Body
+from fastapi import APIRouter, status, Form, UploadFile, File, Path, Response, Body, Query
 from fastapi.responses import RedirectResponse
 from pydantic import EmailStr
 from typing import Annotated
-from src.dependencies import CurrentOwnerDep, VehiclesServiceDep
+from src.dependencies import CurrentOwnerDep, VehiclesServiceDep, CurrentUserByAccessTokenDep
 from .schemas import VehicleColorEnum, VehicleRead
 
 router = APIRouter(
@@ -46,18 +46,21 @@ async def transfer_vehicle(
 
 
 @router.get(
-    '/me',
+    '',
     responses={
         200: {'description': 'Vehicles successfully received'},
         401: {'description': 'Access token are invalid'},
-        403: {'description': 'Access for current user denied'}
+        403: {'description': 'Access for current user denied'},
+        404: {'description': 'Vehicle owner not found'}
     },
-    summary='Get current owner vehicles'
+    summary='Get owner vehicles'
 )
 async def get_owner_vehicles(
-        current_owner: CurrentOwnerDep, vehicles_service: VehiclesServiceDep
+        current_user: CurrentUserByAccessTokenDep,
+        owner_id: Annotated[int, Query(gt=0)],
+        vehicles_service: VehiclesServiceDep
 ) -> list[VehicleRead]:
-    return await vehicles_service.get_owner_vehicles(current_owner.id)
+    return await vehicles_service.get_owner_vehicles(owner_id)
 
 
 @router.post(

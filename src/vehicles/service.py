@@ -15,7 +15,7 @@ from src.user_roles.model import UserRoleEnum
 from src.exceptions import (
     MakeNotFoundException, ModelNotFoundException, RangeNotFoundException, GenerationNotFoundException,
     ConfigurationNotFoundException, VinIsNotUniqueException, RegistrationPlateIsNotUniqueException,
-    VehicleNotFoundException, OwnerIsNotRegisteredException
+    VehicleNotFoundException, OwnerIsNotRegisteredException, VehicleOwnerNotFoundException
 )
 from src.config import VEHICLES_PHOTOS_DIR
 from src.core.jwt_service import JWTService
@@ -144,5 +144,8 @@ class VehiclesService:
         return VehicleRead.model_validate(vehicle)
 
     async def get_owner_vehicles(self, owner_id: int) -> list[VehicleRead]:
+        if not await self.users_repository.exists(id=owner_id):
+            raise VehicleOwnerNotFoundException()
+
         vehicles = await self.vehicles_repository.filter_by(owner_id=owner_id)
         return [VehicleRead.model_validate(vehicle) for vehicle in vehicles]
