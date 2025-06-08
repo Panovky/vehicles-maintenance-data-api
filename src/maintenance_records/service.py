@@ -88,6 +88,7 @@ class MaintenanceRecordsService:
                 ))
 
         return MaintenanceRecordRead(
+            id=maintenance_record.id,
             title=maintenance_record.title,
             maintenance_performer=maintenance_record.maintenance_performer,
             date=maintenance_record.date,
