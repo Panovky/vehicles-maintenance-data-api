@@ -98,6 +98,14 @@ class ServiceClientNotFoundException(HTTPException):
         )
 
 
+class VehicleOwnerNotFoundException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Владелец автомобиля с указанным id не найден.'
+        )
+
+
 class ServiceInnIsNotUniqueException(HTTPException):
     def __init__(self):
         super().__init__(
