@@ -160,6 +160,7 @@ def get_makes_repository(async_session: AsyncSessionDep) -> MakesRepository:
 
 MakesRepositoryDep = Annotated[MakesRepository, Depends(get_makes_repository)]
 
+
 def get_makes_service(makes_repository: MakesRepositoryDep) -> MakesService:
     return MakesService(makes_repository)
 
@@ -294,13 +295,6 @@ def get_services_repository(async_session: AsyncSessionDep) -> ServicesRepositor
 ServicesRepositoryDep = Annotated[ServicesRepository, Depends(get_services_repository)]
 
 
-def get_services_service(services_repository: ServicesRepositoryDep) -> ServicesService:
-    return ServicesService(services_repository)
-
-
-ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
-
-
 def get_service_workers_repository(async_session: AsyncSessionDep) -> ServiceWorkersRepository:
     return ServiceWorkersRepository(async_session)
 
@@ -355,6 +349,21 @@ def get_service_clients_service(
 
 
 ServiceClientsServiceDep = Annotated[ServiceClientsService, Depends(get_service_clients_service)]
+
+
+def get_services_service(
+        services_repository: ServicesRepositoryDep,
+        service_workers_repository: ServiceWorkersRepositoryDep,
+        service_clients_repository: ServiceClientsRepositoryDep
+) -> ServicesService:
+    return ServicesService(
+        services_repository,
+        service_workers_repository,
+        service_clients_repository
+    )
+
+
+ServicesServiceDep = Annotated[ServicesService, Depends(get_services_service)]
 
 
 def get_maintenance_records_repository(async_session: AsyncSessionDep) -> MaintenanceRecordsRepository:
